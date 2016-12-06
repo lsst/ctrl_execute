@@ -25,8 +25,10 @@ import os.path
 import time
 import filecmp
 import unittest
+from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
 from lsst.ctrl.execute.allocator import Allocator
 from lsst.ctrl.execute.allocatorParser import AllocatorParser
+from lsst.ctrl.execute.condorConfig import CondorConfig
 import lsst.utils.tests
 
 
@@ -65,16 +67,25 @@ class TestAllocator(lsst.utils.tests.TestCase):
                 ]
         return argv
 
-    def subSetup(self):
-        fileName = os.path.join("tests", "testfiles", "allocator-info1.py")
+    def subSetup(self, configFileName):
         alp = AllocatorParser(sys.argv[0])
         args = alp.getArgs()
-        al = Allocator("lsst", args, fileName)
-        return al
+
+        condorConfigFile = os.path.join("tests", "testfiles", configFileName)
+        configuration = CondorConfig()
+        configuration.load(condorConfigFile)
+
+        fileName = os.path.join("tests", "testfiles", "allocator-info1.py")
+
+        schedulerName = configuration.platform.scheduler
+        schedulerClass = NamedClassFactory.createClass("lsst.ctrl.execute." + schedulerName + "Plugin")
+        
+        scheduler = schedulerClass("lsst", args, configuration, fileName)
+        return scheduler
 
     def test1(self):
         sys.argv = self.verboseArgs()
-        al = self.subSetup()
+        al = self.subSetup("config_condor.py")
 
         identifier1 = al.createUniqueIdentifier()
         time.sleep(1)
@@ -83,10 +94,8 @@ class TestAllocator(lsst.utils.tests.TestCase):
 
     def test2(self):
         sys.argv = self.verboseArgs()
-        al = self.subSetup()
+        al = self.subSetup("config_condor.py")
 
-        path = os.path.join("tests", "testfiles", "config_condor.py")
-        al.load(path)
         fileName = os.path.join("tests", "testfiles", "config_allocation.py")
         al.loadPbs(fileName)
         self.assertEqual(al.getHostName(), "bighost.lsstcorp.org")
@@ -102,15 +111,13 @@ class TestAllocator(lsst.utils.tests.TestCase):
 
     def test3(self):
         sys.argv = self.regularArgs()
-        al = self.subSetup()
+        al = self.subSetup("config_condor.py")
 
-        path = os.path.join("tests", "testfiles", "config_condor.py")
-        al.load(path)
         fileName = os.path.join("tests", "testfiles", "config_allocation.py")
         al.loadPbs(fileName)
         pbsName = os.path.join("tests", "testfiles", "generic.pbs.template")
         compare = os.path.join("tests", "testfiles", "generic.pbs.txt")
-        generatedPbsFile = al.createPbsFile(pbsName)
+        generatedPbsFile = al.createSubmitFile(pbsName)
 
         self.assertTrue(filecmp.cmp(compare, generatedPbsFile))
         condorFile = os.path.join("tests", "testfiles", "glidein_condor_config.template")
@@ -124,6 +131,27 @@ class TestAllocator(lsst.utils.tests.TestCase):
         os.rmdir(configPath)
         os.rmdir(localScratch)
 
+    def test4(self):
+        sys.argv = self.regularArgs()
+        al = self.subSetup("config_condor_slurm.py")
+
+        fileName = os.path.join("tests", "testfiles", "config_allocation_slurm.py")
+        al.loadSlurm(fileName)
+        slurmName = os.path.join("tests", "testfiles", "generic.slurm.template")
+        compare = os.path.join("tests", "testfiles", "generic.slurm.txt")
+        generatedSlurmFile = al.createSubmitFile(slurmName)
+
+        self.assertTrue(filecmp.cmp(compare, generatedSlurmFile))
+        condorFile = os.path.join("tests", "testfiles", "glidein_condor_config.template")
+        compare = os.path.join("tests", "testfiles", "glidein_condor_config.txt")
+        generatedCondorConfigFile = al.createCondorConfigFile(condorFile)
+        self.assertTrue(filecmp.cmp(compare, generatedCondorConfigFile))
+        os.remove(generatedCondorConfigFile)
+        os.remove(generatedSlurmFile)
+        localScratch = "./tests/condor_scratch"
+        configPath = "./tests/condor_scratch/configs"
+        os.rmdir(configPath)
+        os.rmdir(localScratch)
 
 class AllocatorMemoryTest(lsst.utils.tests.MemoryTestCase):
     pass

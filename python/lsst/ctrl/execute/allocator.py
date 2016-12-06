@@ -2,7 +2,7 @@
 
 #
 # LSST Data Management System
-# Copyright 2008-2012 LSST Corporation.
+# Copyright 2008-2016 LSST Corporation.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -25,7 +25,7 @@
 from __future__ import print_function
 from builtins import str
 from builtins import object
-import os
+import os, sys
 import pwd
 from datetime import datetime
 from string import Template
@@ -48,20 +48,20 @@ class Allocator(object):
         the name of the platform to execute on
     opts : `Config`
         Config object containing options
-    configFileName : `str`
+    condorInfoFileName : `str`
         Name of the file containing Config information
     """
 
-    def __init__(self, platform, opts, configFileName):
+    def __init__(self, platform, opts, configuration, condorInfoFileName):
         """Constructor
         @param platform: target platform for PBS submission
         @param opts: options to override
         """
         self.opts = opts
         self.defaults = {}
+        self.configuration = configuration
 
-        fileName = envString.resolve(configFileName)
-
+        fileName = envString.resolve(condorInfoFileName)
         condorInfoConfig = CondorInfoConfig()
         condorInfoConfig.load(fileName)
 
@@ -86,11 +86,11 @@ class Allocator(object):
                 user_home = os.getenv('HOME')
 
         if user_name is None:
-            raise RuntimeError("error: %s does not specify user name for platform %s" %
-                               (configFileName, self.platform))
+            raise RuntimeError("error: %s does not specify user name for platform == %s" %
+                               (condorInfoFileName, self.platform))
         if user_home is None:
-            raise RuntimeError("error: %s does not specify user home for platform %s" %
-                               (configFileName, self.platform))
+            raise RuntimeError("error: %s does not specify user home for platform == %s" %
+                               (condorInfoFileName, self.platform))
 
         self.defaults["USER_NAME"] = user_name
         self.defaults["USER_HOME"] = user_home
@@ -104,6 +104,8 @@ class Allocator(object):
         self.commandLineDefaults["QUEUE"] = self.opts.queue
         if self.opts.email == "no":
             self.commandLineDefaults["EMAIL_NOTIFICATION"] = "#"
+
+        self.load()
 
     def createNodeSetName(self):
         """Creates the next "node_set" name, using the remote user name and
@@ -139,37 +141,33 @@ class Allocator(object):
             username, now.year, now.month, now.day, now.hour, now.minute, now.second)
         return ident
 
-    def load(self, name):
+    def load(self):
         """Loads all values from configuration and command line overrides into
         data structures suitable for use by the TemplateWriter object.
         """
-        resolvedName = envString.resolve(name)
-        configuration = CondorConfig()
-        configuration.load(resolvedName)
-        self.defaults["LOCAL_SCRATCH"] = envString.resolve(configuration.platform.localScratch)
+        tempLocalScratch = Template(self.configuration.platform.localScratch)
+        self.defaults["LOCAL_SCRATCH"] = tempLocalScratch.substitute(USER_NAME=self.defaults["USER_NAME"])
+        # print("localScratch-> %s" % self.defaults["LOCAL_SCRATCH"])
+        self.defaults["SCHEDULER"] = self.configuration.platform.scheduler
 
-    def loadPbs(self, name):
-        """Loads all values from configuration and command line overrides into
+    def loadAllocationConfig(self, name, suffix):
+        """Loads all values from allocationConfig and command line overrides into
         data structures suitable for use by the TemplateWriter object.
         """
         resolvedName = envString.resolve(name)
-        configuration = AllocationConfig()
+        allocationConfig = AllocationConfig()
         if not os.path.exists(resolvedName):
             raise RuntimeError("%s was not found." % resolvedName)
-        configuration.load(resolvedName)
+        allocationConfig.load(resolvedName)
 
-        self.defaults["QUEUE"] = configuration.platform.queue
-        self.defaults["EMAIL_NOTIFICATION"] = configuration.platform.email
-        self.defaults["HOST_NAME"] = configuration.platform.loginHostName
+        self.defaults["QUEUE"] = allocationConfig.platform.queue
+        self.defaults["EMAIL_NOTIFICATION"] = allocationConfig.platform.email
+        self.defaults["HOST_NAME"] = allocationConfig.platform.loginHostName
 
-        template = Template(configuration.platform.scratchDirectory)
-        scratchDir = template.substitute(USER_HOME=self.getUserHome())
-        self.defaults["SCRATCH_DIR"] = scratchDir
-
-        self.defaults["UTILITY_PATH"] = configuration.platform.utilityPath
+        self.defaults["UTILITY_PATH"] = allocationConfig.platform.utilityPath
 
         if self.opts.glideinShutdown is None:
-            self.defaults["GLIDEIN_SHUTDOWN"] = str(configuration.platform.glideinShutdown)
+            self.defaults["GLIDEIN_SHUTDOWN"] = str(allocationConfig.platform.glideinShutdown)
         else:
             self.defaults["GLIDEIN_SHUTDOWN"] = str(self.opts.glideinShutdown)
 
@@ -193,23 +191,25 @@ class Allocator(object):
         # This is the TOTAL number of cores in the job, not just the total
         # of the cores you intend to use.   In other words, the total available
         # on a machine, times the number of machines.
-        totalCoresPerNode = configuration.platform.totalCoresPerNode
+        totalCoresPerNode = allocationConfig.platform.totalCoresPerNode
         self.commandLineDefaults["TOTAL_CORE_COUNT"] = self.opts.nodeCount * totalCoresPerNode
 
-        uniqueIdentifier = self.createUniqueIdentifier()
+        self.uniqueIdentifier = self.createUniqueIdentifier()
 
         # write these pbs and config files to {LOCAL_DIR}/configs
-        configDir = os.path.join(self.defaults["LOCAL_SCRATCH"], "configs")
-        if not os.path.exists(configDir):
-            os.makedirs(configDir)
+        self.configDir = os.path.join(self.defaults["LOCAL_SCRATCH"], "configs")
+        if not os.path.exists(self.configDir):
+            os.makedirs(self.configDir)
 
-        self.pbsFileName = os.path.join(configDir, "alloc_%s.pbs" % uniqueIdentifier)
+        self.submitFileName = os.path.join(self.configDir, "alloc_%s.%s" % (self.uniqueIdentifier, suffix))
 
-        self.condorConfigFileName = os.path.join(configDir, "condor_%s.config" % uniqueIdentifier)
+        self.condorConfigFileName = os.path.join(self.configDir, "condor_%s.config" % self.uniqueIdentifier)
 
         self.defaults["GENERATED_CONFIG"] = os.path.basename(self.condorConfigFileName)
-
-    def createPbsFile(self, input):
+        self.defaults["CONFIGURATION_ID"] = self.uniqueIdentifier
+        return allocationConfig
+        
+    def createSubmitFile(self, inputFile):
         """Creates a PBS file using the file "input" as a Template
 
         Returns
@@ -217,7 +217,7 @@ class Allocator(object):
         outfile : `str`
             The newly created file name
         """
-        outfile = self.createFile(input, self.pbsFileName)
+        outfile = self.createFile(inputFile, self.submitFileName)
         if self.opts.verbose:
             print("wrote new PBS file to %s" % outfile)
         return outfile
@@ -295,6 +295,12 @@ class Allocator(object):
         """
         return self.getParameter("SCRATCH_DIR")
 
+    def getLocalScratchDirectory(self):
+        """Accessor for LOCAL_SCRATCH
+        @return the value of LOCAL_SCRATCH
+        """
+        return self.getParameter("LOCAL_SCRATCH")
+
     def getNodeSetName(self):
         """Accessor for NODE_SET
         @return the value of NODE_SET
@@ -319,6 +325,12 @@ class Allocator(object):
         """
         return self.getParameter("WALL_CLOCK")
 
+    def getScheduler(self):
+        """Accessor for SCHEDULER
+        @return the value of SCHEDULER
+        """
+        return self.getParameter("SCHEDULER")
+
     def getParameter(self, value):
         """Accessor for generic value
         @return None if value is not set.  Otherwise, use the command line
@@ -329,3 +341,50 @@ class Allocator(object):
         if value in self.defaults:
             return self.defaults[value]
         return None
+
+    def printNodeSetInfo(self):
+        nodes = self.getNodes()
+        slots = self.getSlots()
+        wallClock = self.getWallClock()
+        nodeString = ""
+
+        if int(nodes) > 1:
+            nodeString = "s"
+        print("%s node%s will be allocated on %s with %s slots per node and maximum time limit of %s" %
+              (nodes, nodeString, self.platform, slots, wallClock))
+        print("Node set name:")
+        print(self.getNodeSetName())
+
+    def runCommand(self, cmd, verbose):
+        cmd_split = cmd.split()
+        pid = os.fork()
+        if not pid:
+            # Methods of file transfer and login may
+            # produce different output, depending on how
+            # the "gsi" utilities are used.  The user can
+            # either use grid proxies or ssh, and gsiscp/gsissh
+            # does the right thing.  Since the output will be
+            # different in either case anything potentially parsing this
+            # output (like drpRun), would have to go through extra
+            # steps to deal with this output, and which ultimately
+            # end up not being useful.  So we optinally close the i/o output
+            # of the executing command down.
+            #
+            # stdin/stdio/stderr is treated specially
+            # by python, so we have to close down
+            # both the python objects and the
+            # underlying c implementations
+            if not verbose:
+                # close python i/o
+                sys.stdin.close()
+                sys.stdout.close()
+                sys.stderr.close()
+                # close C's i/o
+                os.close(0)
+                os.close(1)
+                os.close(2)
+            os.execvp(cmd_split[0], cmd_split)
+        pid, status = os.wait()
+        # high order bits are status, low order bits are signal.
+        exitCode = (status & 0xff00) >> 8
+        return exitCode

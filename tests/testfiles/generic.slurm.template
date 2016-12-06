@@ -1,0 +1,6 @@
+#!/bin/bash -l
+#SBATCH -p debug
+#SBATCH -N $NODE_COUNT
+#SBATCH -t $WALL_CLOCK
+#SBATCH -n $NODE_COUNT
+#SBATCH -J $NODE_SET

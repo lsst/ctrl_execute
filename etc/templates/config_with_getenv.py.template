@@ -33,6 +33,7 @@ config.workflow["workflow1"].task["task1"].scriptDir = "workers"
 config.workflow["workflow1"].task["task1"].preJob.script.inputFile = "$PLATFORM_DIR/etc/templates/getenv/preJob.sh.template"
 config.workflow["workflow1"].task["task1"].preJob.script.outputFile = "preJob.sh"
 config.workflow["workflow1"].task["task1"].preJob.condor.inputFile = "$PLATFORM_DIR/etc/templates/getenv/preJob.condor.template"
+config.workflow["workflow1"].task["task1"].preJob.condor.keywords["NODE_SET"] = "$NODE_SET"
 config.workflow["workflow1"].task["task1"].preJob.condor.keywords["FILE_SYSTEM_DOMAIN"] = "$FILE_SYSTEM_DOMAIN"
 
 config.workflow["workflow1"].task["task1"].preJob.condor.outputFile = "S2012Pipe.pre"
@@ -41,12 +42,14 @@ config.workflow["workflow1"].task["task1"].postJob.script.inputFile = "$PLATFORM
 config.workflow["workflow1"].task["task1"].postJob.script.outputFile = "postJob.sh"
 config.workflow["workflow1"].task["task1"].postJob.condor.inputFile = "$PLATFORM_DIR/etc/templates/getenv/postJob.condor.template"
 config.workflow["workflow1"].task["task1"].postJob.condor.keywords["FILE_SYSTEM_DOMAIN"] = "$FILE_SYSTEM_DOMAIN"
+config.workflow["workflow1"].task["task1"].postJob.condor.keywords["NODE_SET"] = "$NODE_SET"
 config.workflow["workflow1"].task["task1"].postJob.condor.outputFile = "S2012Pipe.post"
 
 config.workflow["workflow1"].task["task1"].workerJob.script.inputFile = "$PLATFORM_DIR/etc/templates/getenv/worker.sh.template"
 config.workflow["workflow1"].task["task1"].workerJob.script.outputFile = "worker.sh"
 config.workflow["workflow1"].task["task1"].workerJob.condor.inputFile = "$PLATFORM_DIR/etc/templates/getenv/workerJob.condor.template"
 config.workflow["workflow1"].task["task1"].workerJob.condor.keywords["FILE_SYSTEM_DOMAIN"] = "$FILE_SYSTEM_DOMAIN"
+config.workflow["workflow1"].task["task1"].workerJob.condor.keywords["NODE_SET"] = "$NODE_SET"
 config.workflow["workflow1"].task["task1"].workerJob.condor.outputFile = "S2012Pipeline-template.condor"
 
 

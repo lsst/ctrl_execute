@@ -2,7 +2,7 @@
 
 #
 # LSST Data Management System
-# Copyright 2008-2012 LSST Corporation.
+# Copyright 2008-2016 LSST Corporation.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -36,6 +36,8 @@ class PlatformConfig(pexConfig.Config):
     fileSystemDomain = pexConfig.Field(doc="network domain name of remote system", dtype=str, default=None)
     eupsPath = pexConfig.Field(doc="location of remote EUPS stack", dtype=str, default=None)
     nodeSetRequired = pexConfig.Field(doc="is the nodeset required", dtype=bool, default=False)
+    scheduler = pexConfig.Field(doc="scheduler type", dtype=str, default=None)
+    setup_using = pexConfig.Field(doc="environment setup type", dtype=str, default=None)
 
 
 class CondorConfig(pexConfig.Config):

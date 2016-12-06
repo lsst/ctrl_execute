@@ -102,7 +102,8 @@ class TestConfigurator(lsst.utils.tests.TestCase):
 
     def test4(self):
         configurator = self.setup(self.getLocalArgs())
-        testname = "config_with_getenv.py.template"
+        testname = "config_with_setups.py.template"
+        print(os.path.basename(configurator.getGenericConfigFileName()))
         self.assertTrue(os.path.basename(configurator.getGenericConfigFileName()) == testname)
 
     def test5(self):
