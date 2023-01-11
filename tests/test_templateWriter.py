@@ -20,12 +20,13 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import unittest
+import filecmp
 import os
 import os.path
-import filecmp
-from lsst.ctrl.execute.templateWriter import TemplateWriter
+import unittest
+
 import lsst.utils.tests
+from lsst.ctrl.execute.templateWriter import TemplateWriter
 
 
 def setup_module(module):
@@ -33,7 +34,6 @@ def setup_module(module):
 
 
 class TestTemplateWriter(lsst.utils.tests.TestCase):
-
     def test1(self):
         pairs = {}
         pairs["TEST1"] = "Hello"

@@ -23,15 +23,16 @@
 #
 
 import os
-import sys
 import pwd
+import sys
 from datetime import datetime
 from string import Template
+
 from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
-from lsst.ctrl.execute.templateWriter import TemplateWriter
 from lsst.ctrl.execute.seqFile import SeqFile
+from lsst.ctrl.execute.templateWriter import TemplateWriter
 
 
 class Allocator:
@@ -80,14 +81,18 @@ class Allocator:
             if user_name is None:
                 user_name = pwd.getpwuid(os.geteuid()).pw_name
             if user_home is None:
-                user_home = os.getenv('HOME')
+                user_home = os.getenv("HOME")
 
         if user_name is None:
-            raise RuntimeError("error: %s does not specify user name for platform == %s" %
-                               (condorInfoFileName, self.platform))
+            raise RuntimeError(
+                "error: %s does not specify user name for platform == %s"
+                % (condorInfoFileName, self.platform)
+            )
         if user_home is None:
-            raise RuntimeError("error: %s does not specify user home for platform == %s" %
-                               (condorInfoFileName, self.platform))
+            raise RuntimeError(
+                "error: %s does not specify user home for platform == %s"
+                % (condorInfoFileName, self.platform)
+            )
 
         self.defaults["USER_NAME"] = user_name
         self.defaults["USER_HOME"] = user_home
@@ -135,7 +140,14 @@ class Allocator:
         now = datetime.now()
         username = pwd.getpwuid(os.geteuid()).pw_name
         ident = "%s_%02d_%02d%02d_%02d%02d%02d" % (
-            username, now.year, now.month, now.day, now.hour, now.minute, now.second)
+            username,
+            now.year,
+            now.month,
+            now.day,
+            now.hour,
+            now.minute,
+            now.second,
+        )
         return ident
 
     def load(self):
@@ -143,7 +155,9 @@ class Allocator:
         data structures suitable for use by the TemplateWriter object.
         """
         tempLocalScratch = Template(self.configuration.platform.localScratch)
-        self.defaults["LOCAL_SCRATCH"] = tempLocalScratch.substitute(USER_NAME=self.defaults["USER_NAME"])
+        self.defaults["LOCAL_SCRATCH"] = tempLocalScratch.substitute(
+            USER_NAME=self.defaults["USER_NAME"]
+        )
         # print("localScratch-> %s" % self.defaults["LOCAL_SCRATCH"])
         self.defaults["SCHEDULER"] = self.configuration.platform.scheduler
 
@@ -164,7 +178,9 @@ class Allocator:
         self.defaults["UTILITY_PATH"] = allocationConfig.platform.utilityPath
 
         if self.opts.glideinShutdown is None:
-            self.defaults["GLIDEIN_SHUTDOWN"] = str(allocationConfig.platform.glideinShutdown)
+            self.defaults["GLIDEIN_SHUTDOWN"] = str(
+                allocationConfig.platform.glideinShutdown
+            )
         else:
             self.defaults["GLIDEIN_SHUTDOWN"] = str(self.opts.glideinShutdown)
 
@@ -189,7 +205,9 @@ class Allocator:
         # of the cores you intend to use.   In other words, the total available
         # on a machine, times the number of machines.
         totalCoresPerNode = allocationConfig.platform.totalCoresPerNode
-        self.commandLineDefaults["TOTAL_CORE_COUNT"] = self.opts.nodeCount * totalCoresPerNode
+        self.commandLineDefaults["TOTAL_CORE_COUNT"] = (
+            self.opts.nodeCount * totalCoresPerNode
+        )
 
         self.uniqueIdentifier = self.createUniqueIdentifier()
 
@@ -198,9 +216,13 @@ class Allocator:
         if not os.path.exists(self.configDir):
             os.makedirs(self.configDir)
 
-        self.submitFileName = os.path.join(self.configDir, "alloc_%s.%s" % (self.uniqueIdentifier, suffix))
+        self.submitFileName = os.path.join(
+            self.configDir, "alloc_%s.%s" % (self.uniqueIdentifier, suffix)
+        )
 
-        self.condorConfigFileName = os.path.join(self.configDir, "condor_%s.config" % self.uniqueIdentifier)
+        self.condorConfigFileName = os.path.join(
+            self.configDir, "condor_%s.config" % self.uniqueIdentifier
+        )
 
         self.defaults["GENERATED_CONFIG"] = os.path.basename(self.condorConfigFileName)
         self.defaults["CONFIGURATION_ID"] = self.uniqueIdentifier
@@ -354,16 +376,22 @@ class Allocator:
         if int(nodes) > 1:
             nodeString = "s"
         if self.opts.dynamic is None:
-            print("%s node%s will be allocated on %s with %s cpus per node and maximum time limit of %s" %
-                  (nodes, nodeString, self.platform, cpus, wallClock))
-        elif self.opts.dynamic == '__default__':
-            print("%s node%s will be allocated on %s using default dynamic slots configuration \
-with %s cpus per node and maximum time limit of %s" %
-                  (nodes, nodeString, self.platform, cpus, wallClock))
+            print(
+                "%s node%s will be allocated on %s with %s cpus per node and maximum time limit of %s"
+                % (nodes, nodeString, self.platform, cpus, wallClock)
+            )
+        elif self.opts.dynamic == "__default__":
+            print(
+                "%s node%s will be allocated on %s using default dynamic slots configuration \
+with %s cpus per node and maximum time limit of %s"
+                % (nodes, nodeString, self.platform, cpus, wallClock)
+            )
         else:
-            print("%s node%s will be allocated on %s using dynamic slot block specified in \
-'%s' with %s cpus per node and maximum time limit of %s" %
-                  (nodes, nodeString, self.platform, self.opts.dynamic, cpus, wallClock))
+            print(
+                "%s node%s will be allocated on %s using dynamic slot block specified in \
+'%s' with %s cpus per node and maximum time limit of %s"
+                % (nodes, nodeString, self.platform, self.opts.dynamic, cpus, wallClock)
+            )
         print("Node set name:")
         print(self.getNodeSetName())
 
@@ -398,5 +426,5 @@ with %s cpus per node and maximum time limit of %s" %
             os.execvp(cmd_split[0], cmd_split)
         pid, status = os.wait()
         # high order bits are status, low order bits are signal.
-        exitCode = (status & 0xff00) >> 8
+        exitCode = (status & 0xFF00) >> 8
         return exitCode

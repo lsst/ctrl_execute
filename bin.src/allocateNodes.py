@@ -22,24 +22,24 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import sys
 import os
+import sys
+
 import lsst.utils
-from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
+from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocatorParser import AllocatorParser
 from lsst.ctrl.execute.condorConfig import CondorConfig
-from lsst.ctrl.execute import envString
+from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
 
 
 def main():
-    """Allocates Condor glide-in nodes a scheduler on a remote Node.
-    """
+    """Allocates Condor glide-in nodes a scheduler on a remote Node."""
 
     p = AllocatorParser(sys.argv[0])
     platform = p.getPlatform()
 
     # load the CondorConfig file
-    platformPkgDir = lsst.utils.getPackageDir("ctrl_platform_"+platform)
+    platformPkgDir = lsst.utils.getPackageDir("ctrl_platform_" + platform)
     execConfigName = os.path.join(platformPkgDir, "etc", "config", "execConfig.py")
 
     resolvedName = envString.resolve(execConfigName)
@@ -48,10 +48,14 @@ def main():
 
     # create the plugin class
     schedulerName = configuration.platform.scheduler
-    schedulerClass = NamedClassFactory.createClass("lsst.ctrl.execute." + schedulerName + "Plugin")
+    schedulerClass = NamedClassFactory.createClass(
+        "lsst.ctrl.execute." + schedulerName + "Plugin"
+    )
 
     # create the plugin
-    scheduler = schedulerClass(platform, p.getArgs(), configuration, "$HOME/.lsst/condor-info.py")
+    scheduler = schedulerClass(
+        platform, p.getArgs(), configuration, "$HOME/.lsst/condor-info.py"
+    )
 
     # submit the request
     scheduler.submit(platform, platformPkgDir)

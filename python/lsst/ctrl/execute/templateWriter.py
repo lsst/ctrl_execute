@@ -39,8 +39,8 @@ class TemplateWriter:
         @param output - the output file name
         @param pairs of values to substitute in the template
         """
-        fpInput = open(input, 'r')
-        fpOutput = open(output, 'w')
+        fpInput = open(input, "r")
+        fpOutput = open(output, "w")
 
         while True:
             line = fpInput.readline()
@@ -49,7 +49,7 @@ class TemplateWriter:
 
             # replace the user defined names
             for name in pairs:
-                key = "$"+name
+                key = "$" + name
                 val = str(pairs[name])
                 line = line.replace(key, val)
             fpOutput.write(line)

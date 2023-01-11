@@ -25,15 +25,16 @@ import os
 import os.path
 import pwd
 import sys
-
-import lsst.utils
-import eups
 from datetime import datetime
 from string import Template
-from .templateWriter import TemplateWriter
+
+import eups
+import lsst.utils
+from lsst.ctrl.execute import envString
+
 from .condorConfig import CondorConfig
 from .condorInfoConfig import CondorInfoConfig
-from lsst.ctrl.execute import envString
+from .templateWriter import TemplateWriter
 
 
 class Configurator:
@@ -80,14 +81,18 @@ class Configurator:
             if user_name is None:
                 user_name = pwd.getpwuid(os.geteuid()).pw_name
             if user_home is None:
-                user_home = os.getenv('HOME')
+                user_home = os.getenv("HOME")
 
         if user_name is None:
-            raise RuntimeError("error: %s does not specify user name for platform %s" %
-                               (configFileName, self.platform))
+            raise RuntimeError(
+                "error: %s does not specify user name for platform %s"
+                % (configFileName, self.platform)
+            )
         if user_home is None:
-            raise RuntimeError("error: %s does not specify user home for platform %s" %
-                               (configFileName, self.platform))
+            raise RuntimeError(
+                "error: %s does not specify user home for platform %s"
+                % (configFileName, self.platform)
+            )
 
         self.commandLineDefaults = {}
         self.commandLineDefaults["USER_NAME"] = user_name
@@ -104,7 +109,9 @@ class Configurator:
         if self.opts.inputDataFile is None:
             self.commandLineDefaults["INPUT_DATA_FILE"] = None
         else:
-            self.commandLineDefaults["INPUT_DATA_FILE"] = os.path.abspath(self.opts.inputDataFile)
+            self.commandLineDefaults["INPUT_DATA_FILE"] = os.path.abspath(
+                self.opts.inputDataFile
+            )
         self.commandLineDefaults["FILE_SYSTEM_DOMAIN"] = self.opts.fileSystemDomain
         self.commandLineDefaults["EUPS_PATH"] = self.opts.eupsPath
 
@@ -132,22 +139,26 @@ class Configurator:
 
         self.commandLineDefaults["COMMAND"] = self.opts.command
         if self.commandLineDefaults["INPUT_DATA_FILE"] is not None:
-            self.commandLineDefaults["COMMAND"] = self.commandLineDefaults["COMMAND"]+" ${id_option}"
+            self.commandLineDefaults["COMMAND"] = (
+                self.commandLineDefaults["COMMAND"] + " ${id_option}"
+            )
 
     def getGenericConfigFileName(self):
         """Retrieve a ctrl_execute orca config template, depending
         on which target environment jobs will be running on.
         @return the name of the orca config template
         """
-        executePkgDir = lsst.utils.getPackageDir('ctrl_execute')
+        executePkgDir = lsst.utils.getPackageDir("ctrl_execute")
 
         name = "config_with_%s.py.template" % self.setup_using
-        genericConfigName = os.path.join(executePkgDir,
-                                         "etc", "templates", self.manager, name)
+        genericConfigName = os.path.join(
+            executePkgDir, "etc", "templates", self.manager, name
+        )
         if os.path.exists(genericConfigName):
             return genericConfigName
-        raise RuntimeError("File %s not found; check etc/templates." %
-                           genericConfigName)
+        raise RuntimeError(
+            "File %s not found; check etc/templates." % genericConfigName
+        )
 
     def createRunId(self):
         """create a unique runid
@@ -156,8 +167,15 @@ class Configurator:
         # runid is in the form of <login>_YYYY_MMDD_HHMMSS
         now = datetime.now()
         username = pwd.getpwuid(os.geteuid()).pw_name
-        runid = "%s_%02d_%02d%02d_%02d%02d%02d" % (username, now.year, now.month,
-                                                   now.day, now.hour, now.minute, now.second)
+        runid = "%s_%02d_%02d%02d_%02d%02d%02d" % (
+            username,
+            now.year,
+            now.month,
+            now.day,
+            now.hour,
+            now.minute,
+            now.second,
+        )
         self.runid = runid
         return runid
 
@@ -212,24 +230,30 @@ class Configurator:
 
         tempDefaultRoot = Template(configuration.platform.defaultRoot)
         self.defaults["DEFAULT_ROOT"] = tempDefaultRoot.substitute(
-            USER_NAME=self.commandLineDefaults["USER_NAME"])
+            USER_NAME=self.commandLineDefaults["USER_NAME"]
+        )
 
         tempLocalScratch = Template(configuration.platform.localScratch)
-        self.defaults["LOCAL_SCRATCH"] = \
-            tempLocalScratch.substitute(USER_NAME=self.commandLineDefaults["USER_NAME"])
+        self.defaults["LOCAL_SCRATCH"] = tempLocalScratch.substitute(
+            USER_NAME=self.commandLineDefaults["USER_NAME"]
+        )
         self.defaults["IDS_PER_JOB"] = configuration.platform.idsPerJob
-        self.defaults["DATA_DIRECTORY"] = envString.resolve(configuration.platform.dataDirectory)
+        self.defaults["DATA_DIRECTORY"] = envString.resolve(
+            configuration.platform.dataDirectory
+        )
         self.defaults["FILE_SYSTEM_DOMAIN"] = configuration.platform.fileSystemDomain
         self.defaults["EUPS_PATH"] = configuration.platform.eupsPath
-        self.defaults["MANAGER_SOFTWARE_HOME"] = configuration.platform.manager_software_home
+        self.defaults[
+            "MANAGER_SOFTWARE_HOME"
+        ] = configuration.platform.manager_software_home
 
-        platform_dir = lsst.utils.getPackageDir("ctrl_platform_"+self.opts.platform)
+        platform_dir = lsst.utils.getPackageDir("ctrl_platform_" + self.opts.platform)
         self.defaults["PLATFORM_DIR"] = platform_dir
         self.manager = configuration.platform.manager
         self.setup_using = configuration.platform.setup_using
 
     def createConfiguration(self, input):
-        """ creates a new Orca configuration file
+        """creates a new Orca configuration file
         @param input: template to use for value substitution
         @return the newly created Orca configuration file
         """

@@ -47,7 +47,9 @@ class RunOrcaParser:
         @return: the parser options and remaining arguments
         """
 
-        parser = argparse.ArgumentParser(prog=basename, usage="[-h] -p PLATFORM -e EUPSPATH \
+        parser = argparse.ArgumentParser(
+            prog=basename,
+            usage="[-h] -p PLATFORM -e EUPSPATH \
             ((-c COMMAND -i INPUTDATAFILE) | (-D DAGSCRIPT -I INPUTSCRIPT)) \
             [-N NODESET] \
             [-n IDSPERJOB] \
@@ -59,47 +61,149 @@ class RunOrcaParser:
             [-H USER_HOME] \
             [-P PLATFORMCONFIG] \
             [-R RUNID] \
-            [-v] [-s SETUP SETUP]")
-        parser.add_argument("-p", "--platform", action="store", dest="platform",
-                            default=None, help="platform", required=True)
+            [-v] [-s SETUP SETUP]",
+        )
+        parser.add_argument(
+            "-p",
+            "--platform",
+            action="store",
+            dest="platform",
+            default=None,
+            help="platform",
+            required=True,
+        )
 
         command_group = parser.add_argument_group("parallel command")
-        command_group.add_argument("-c", "--command", action="store", dest="command",
-                                   default=None, help="command")
-        command_group.add_argument("-i", "--id-file", action="store", dest="inputDataFile",
-                                   default=None, help="list of ids")
+        command_group.add_argument(
+            "-c",
+            "--command",
+            action="store",
+            dest="command",
+            default=None,
+            help="command",
+        )
+        command_group.add_argument(
+            "-i",
+            "--id-file",
+            action="store",
+            dest="inputDataFile",
+            default=None,
+            help="list of ids",
+        )
 
         dag_group = parser.add_argument_group("dag script")
-        dag_group.add_argument("-D", "--dag-script", action="store", dest="dagscript",
-                               default=None, help="dag script")
-        dag_group.add_argument("-I", "--input-script", action="store", dest="inputscript",
-                               default=None, help="input script")
+        dag_group.add_argument(
+            "-D",
+            "--dag-script",
+            action="store",
+            dest="dagscript",
+            default=None,
+            help="dag script",
+        )
+        dag_group.add_argument(
+            "-I",
+            "--input-script",
+            action="store",
+            dest="inputscript",
+            default=None,
+            help="input script",
+        )
 
-        parser.add_argument("-e", "--eups-path", action="store", dest="eupsPath",
-                            default=None, help="eups path", required=True)
-        parser.add_argument("-N", "--node-set", action="store",
-                            default=None, dest="nodeSet",
-                            help="name of collection of nodes to use (required by some platforms)",
-                            required=False)
-        parser.add_argument("-n", "--ids-per-job", action="store",
-                            default=None, dest="idsPerJob", help="ids per job")
-        parser.add_argument("-r", "--default-root", action="store", dest="defaultRoot",
-                            default=None, help="remote working directory for Condor")
-        parser.add_argument("-l", "--local-scratch", action="store", dest="localScratch",
-                            default=None, help="local staging directory for Condor")
-        parser.add_argument("-d", "--data-directory", action="store", dest="dataDirectory",
-                            default=None, help="where the data is located")
+        parser.add_argument(
+            "-e",
+            "--eups-path",
+            action="store",
+            dest="eupsPath",
+            default=None,
+            help="eups path",
+            required=True,
+        )
+        parser.add_argument(
+            "-N",
+            "--node-set",
+            action="store",
+            default=None,
+            dest="nodeSet",
+            help="name of collection of nodes to use (required by some platforms)",
+            required=False,
+        )
+        parser.add_argument(
+            "-n",
+            "--ids-per-job",
+            action="store",
+            default=None,
+            dest="idsPerJob",
+            help="ids per job",
+        )
+        parser.add_argument(
+            "-r",
+            "--default-root",
+            action="store",
+            dest="defaultRoot",
+            default=None,
+            help="remote working directory for Condor",
+        )
+        parser.add_argument(
+            "-l",
+            "--local-scratch",
+            action="store",
+            dest="localScratch",
+            default=None,
+            help="local staging directory for Condor",
+        )
+        parser.add_argument(
+            "-d",
+            "--data-directory",
+            action="store",
+            dest="dataDirectory",
+            default=None,
+            help="where the data is located",
+        )
 
-        parser.add_argument("-F", "--file-system-domain", action="store", dest="fileSystemDomain",
-                            default=None, help="file system domain")
-        parser.add_argument("-u", "--user-name", action="store", dest="user_name", default=None, help="user")
-        parser.add_argument("-H", "--user-home", action="store", dest="user_home", default=None, help="home")
-        parser.add_argument("-R", "--run-id", action="store", dest="runid", default=None, help="run id")
-        parser.add_argument("-v", "--verbose", action="store_true", dest="verbose",
-                            default=False, help="verbose")
+        parser.add_argument(
+            "-F",
+            "--file-system-domain",
+            action="store",
+            dest="fileSystemDomain",
+            default=None,
+            help="file system domain",
+        )
+        parser.add_argument(
+            "-u",
+            "--user-name",
+            action="store",
+            dest="user_name",
+            default=None,
+            help="user",
+        )
+        parser.add_argument(
+            "-H",
+            "--user-home",
+            action="store",
+            dest="user_home",
+            default=None,
+            help="home",
+        )
+        parser.add_argument(
+            "-R", "--run-id", action="store", dest="runid", default=None, help="run id"
+        )
+        parser.add_argument(
+            "-v",
+            "--verbose",
+            action="store_true",
+            dest="verbose",
+            default=False,
+            help="verbose",
+        )
         parser.add_argument("-s", "--setup", action="append", nargs=2, help="setup")
-        parser.add_argument("-P", "--platformconfig", action="store", dest="platformConfig",
-                            default=None, help="platform configuration file")
+        parser.add_argument(
+            "-P",
+            "--platformconfig",
+            action="store",
+            dest="platformConfig",
+            default=None,
+            help="platform configuration file",
+        )
 
         args = parser.parse_args()
 

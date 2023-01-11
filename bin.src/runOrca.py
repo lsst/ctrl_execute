@@ -22,10 +22,11 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import lsst.utils
-import sys
 import os
 import os.path
+import sys
+
+import lsst.utils
 from lsst.ctrl.execute.configurator import Configurator
 from lsst.ctrl.execute.runOrcaParser import RunOrcaParser
 
@@ -35,10 +36,9 @@ def main():
     args = p.getArgs()
     creator = Configurator(args, "$HOME/.lsst/condor-info.py")
 
-    platformPkgDir = lsst.utils.getPackageDir("ctrl_platform_"+creator.platform)
+    platformPkgDir = lsst.utils.getPackageDir("ctrl_platform_" + creator.platform)
     if args.platformConfig is None:
-        configFileName = os.path.join(platformPkgDir,
-                                      "etc", "config", "execConfig.py")
+        configFileName = os.path.join(platformPkgDir, "etc", "config", "execConfig.py")
     else:
         configFileName = args.platformConfig
 

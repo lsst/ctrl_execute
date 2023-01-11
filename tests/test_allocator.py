@@ -19,15 +19,16 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
-import sys
-import os.path
-import time
 import filecmp
+import os.path
+import sys
+import time
 import unittest
-from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
+
+import lsst.utils.tests
 from lsst.ctrl.execute.allocatorParser import AllocatorParser
 from lsst.ctrl.execute.condorConfig import CondorConfig
-import lsst.utils.tests
+from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
 
 
 def setup_module(module):
@@ -35,34 +36,49 @@ def setup_module(module):
 
 
 class TestAllocator(lsst.utils.tests.TestCase):
-
     def verboseArgs(self):
-        argv = ["allocator_test",
-                "test_platform",
-                "-n", "64",
-                "-c", "12",
-                "-m", "00:30:00",
-                "-N", "test_set",
-                "-q", "normal",
-                "-e",
-                "-O", "outlog",
-                "-E", "errlog",
-                "-v",
-                ]
+        argv = [
+            "allocator_test",
+            "test_platform",
+            "-n",
+            "64",
+            "-c",
+            "12",
+            "-m",
+            "00:30:00",
+            "-N",
+            "test_set",
+            "-q",
+            "normal",
+            "-e",
+            "-O",
+            "outlog",
+            "-E",
+            "errlog",
+            "-v",
+        ]
         return argv
 
     def regularArgs(self):
-        argv = ["allocator_test",
-                "test_platform",
-                "-n", "64",
-                "-c", "12",
-                "-m", "00:30:00",
-                "-N", "test_set",
-                "-q", "normal",
-                "-e",
-                "-O", "outlog",
-                "-E", "errlog",
-                ]
+        argv = [
+            "allocator_test",
+            "test_platform",
+            "-n",
+            "64",
+            "-c",
+            "12",
+            "-m",
+            "00:30:00",
+            "-N",
+            "test_set",
+            "-q",
+            "normal",
+            "-e",
+            "-O",
+            "outlog",
+            "-E",
+            "errlog",
+        ]
         return argv
 
     def subSetup(self, configFileName):
@@ -76,7 +92,9 @@ class TestAllocator(lsst.utils.tests.TestCase):
         fileName = os.path.join("tests", "testfiles", "allocator-info1.py")
 
         schedulerName = configuration.platform.scheduler
-        schedulerClass = NamedClassFactory.createClass("lsst.ctrl.execute." + schedulerName + "Plugin")
+        schedulerClass = NamedClassFactory.createClass(
+            "lsst.ctrl.execute." + schedulerName + "Plugin"
+        )
 
         scheduler = schedulerClass("lsst", args, configuration, fileName)
         return scheduler
@@ -122,7 +140,9 @@ class TestAllocator(lsst.utils.tests.TestCase):
         generatedPbsFile = al.createSubmitFile(pbsName)
 
         self.assertTrue(filecmp.cmp(compare, generatedPbsFile))
-        condorFile = os.path.join("tests", "testfiles", "glidein_condor_config.template")
+        condorFile = os.path.join(
+            "tests", "testfiles", "glidein_condor_config.template"
+        )
         compare = os.path.join("tests", "testfiles", "glidein_condor_config.txt")
         generatedCondorConfigFile = al.createCondorConfigFile(condorFile)
         self.assertTrue(filecmp.cmp(compare, generatedCondorConfigFile))
@@ -144,7 +164,9 @@ class TestAllocator(lsst.utils.tests.TestCase):
         generatedSlurmFile = al.createSubmitFile(slurmName)
 
         self.assertTrue(filecmp.cmp(compare, generatedSlurmFile))
-        condorFile = os.path.join("tests", "testfiles", "glidein_condor_config.template")
+        condorFile = os.path.join(
+            "tests", "testfiles", "glidein_condor_config.template"
+        )
         compare = os.path.join("tests", "testfiles", "glidein_condor_config.txt")
         generatedCondorConfigFile = al.createCondorConfigFile(condorFile)
         self.assertTrue(filecmp.cmp(compare, generatedCondorConfigFile))

@@ -21,10 +21,10 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import sys
+import errno
 import os
 import re
-import errno
+import sys
 
 # extracts a line from a DAG file to show which ids were processed for a
 # particular dag node
@@ -41,17 +41,17 @@ if __name__ == "__main__":
         print("file %s not found" % filename)
         sys.exit(errno.ENOENT)
 
-    ex = r'VARS %s var1=\"(?P<idlist>.+?)\"' % dagNode
+    ex = r"VARS %s var1=\"(?P<idlist>.+?)\"" % dagNode
     file = open(filename)
     for line in file:
-        line = line.rstrip(' \n')
+        line = line.rstrip(" \n")
 
         # look for the line with the dagnode name in it
         # and extract everything after "var1", but not the quotes
         values = re.search(ex, line)
         if values is None:
             continue
-        ids = values.groupdict()['idlist']
+        ids = values.groupdict()["idlist"]
         file.close()
         print(ids)
         sys.exit(0)

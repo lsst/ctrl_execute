@@ -20,17 +20,17 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import lsst.utils
 import os
 import os.path
+
+import lsst.utils
 from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
 
 
 class QCommand:
-    """A class which wraps qsub-style commands for execution
-    """
+    """A class which wraps qsub-style commands for execution"""
 
     def __init__(self, platform):
 
@@ -46,7 +46,7 @@ class QCommand:
         condorInfoConfig = CondorInfoConfig()
         condorInfoConfig.load(fileName)
 
-        platformPkgDir = lsst.utils.getPackageDir("ctrl_platform_"+platform)
+        platformPkgDir = lsst.utils.getPackageDir("ctrl_platform_" + platform)
         configName = os.path.join(platformPkgDir, "etc", "config", "pbsConfig.py")
 
         allocationConfig = AllocationConfig()
@@ -58,8 +58,7 @@ class QCommand:
         self.utilityPath = allocationConfig.platform.utilityPath
 
     def runCommand(self, command):
-        """Execute the command line
-        """
+        """Execute the command line"""
         cmd_split = command.split()
         pid = os.fork()
         if not pid:
@@ -67,5 +66,5 @@ class QCommand:
         pid, status = os.wait()
         # low order bits of status contain the signal that killed the process
         # high order bits of status contain the exit code
-        exitCode = (status & 0xff00) >> 8
+        exitCode = (status & 0xFF00) >> 8
         return exitCode

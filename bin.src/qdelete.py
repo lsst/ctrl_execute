@@ -23,6 +23,7 @@
 #
 
 import sys
+
 from lsst.ctrl.execute.qCommand import QCommand
 
 if __name__ == "__main__":
@@ -31,6 +32,12 @@ if __name__ == "__main__":
 
     cmd = QCommand(platform)
 
-    command = "%s %s@%s %s/qdel %s" % (cmd.remoteLoginCmd, cmd.userName, cmd.hostName, cmd.utilityPath, jobId)
+    command = "%s %s@%s %s/qdel %s" % (
+        cmd.remoteLoginCmd,
+        cmd.userName,
+        cmd.hostName,
+        cmd.utilityPath,
+        jobId,
+    )
     exitCode = cmd.runCommand(command)
     sys.exit(exitCode)

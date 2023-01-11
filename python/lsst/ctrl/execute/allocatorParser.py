@@ -61,29 +61,107 @@ class AllocatorParser:
 
         parser = argparse.ArgumentParser(prog=basename)
         parser.add_argument("platform", help="node allocation platform")
-        parser.add_argument("-n", "--node-count", action="store", default=None,
-                            dest="nodeCount", help="number of nodes to use", type=int, required=True)
-        parser.add_argument("-c", "--cpus", action="store", default=None, dest="cpus",
-                            help="cpus per node (WAS '-s' (--slots) option)", type=int, required=True)
-        parser.add_argument("-m", "--maximum-wall-clock", action="store", dest="maximumWallClock",
-                            default=None, help="maximum wall clock time", type=str, required=True)
-        parser.add_argument("-N", "--node-set", action="store",
-                            dest="nodeSet", default=None, help="node set name")
-        parser.add_argument("-q", "--queue", action="store", dest="queue",
-                            default="debug", help="queue name")
-        parser.add_argument("-e", "--email", action="store_true", dest="email",
-                            default=None, help="email notification flag")
-        parser.add_argument("-O", "--output-log", action="store", dest="outputLog",
-                            default=None, help="Output log filename")
-        parser.add_argument("-E", "--error-log", action="store", dest="errorLog",
-                            default=None, help="Error log filename")
-        parser.add_argument("-g", "--glidein-shutdown", action="store", dest="glideinShutdown",
-                            type=int, default=None, help="glide-in inactivity shutdown time in seconds")
-        parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="verbose")
-        parser.add_argument("-r", "--reservation", action="store", dest="reservation",
-                            default=None, help="run id")
-        parser.add_argument("-d", "--dynamic", const='__default__', nargs='?', action="store",
-                            dest="dynamic", type=str, default=None, help="configure to use dynamic slots")
+        parser.add_argument(
+            "-n",
+            "--node-count",
+            action="store",
+            default=None,
+            dest="nodeCount",
+            help="number of nodes to use",
+            type=int,
+            required=True,
+        )
+        parser.add_argument(
+            "-c",
+            "--cpus",
+            action="store",
+            default=None,
+            dest="cpus",
+            help="cpus per node (WAS '-s' (--slots) option)",
+            type=int,
+            required=True,
+        )
+        parser.add_argument(
+            "-m",
+            "--maximum-wall-clock",
+            action="store",
+            dest="maximumWallClock",
+            default=None,
+            help="maximum wall clock time",
+            type=str,
+            required=True,
+        )
+        parser.add_argument(
+            "-N",
+            "--node-set",
+            action="store",
+            dest="nodeSet",
+            default=None,
+            help="node set name",
+        )
+        parser.add_argument(
+            "-q",
+            "--queue",
+            action="store",
+            dest="queue",
+            default="debug",
+            help="queue name",
+        )
+        parser.add_argument(
+            "-e",
+            "--email",
+            action="store_true",
+            dest="email",
+            default=None,
+            help="email notification flag",
+        )
+        parser.add_argument(
+            "-O",
+            "--output-log",
+            action="store",
+            dest="outputLog",
+            default=None,
+            help="Output log filename",
+        )
+        parser.add_argument(
+            "-E",
+            "--error-log",
+            action="store",
+            dest="errorLog",
+            default=None,
+            help="Error log filename",
+        )
+        parser.add_argument(
+            "-g",
+            "--glidein-shutdown",
+            action="store",
+            dest="glideinShutdown",
+            type=int,
+            default=None,
+            help="glide-in inactivity shutdown time in seconds",
+        )
+        parser.add_argument(
+            "-v", "--verbose", action="store_true", dest="verbose", help="verbose"
+        )
+        parser.add_argument(
+            "-r",
+            "--reservation",
+            action="store",
+            dest="reservation",
+            default=None,
+            help="run id",
+        )
+        parser.add_argument(
+            "-d",
+            "--dynamic",
+            const="__default__",
+            nargs="?",
+            action="store",
+            dest="dynamic",
+            type=str,
+            default=None,
+            help="configure to use dynamic slots",
+        )
 
         self.args = parser.parse_args()
 

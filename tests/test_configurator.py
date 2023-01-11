@@ -19,13 +19,14 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
-import unittest
-import sys
 import os.path
+import sys
 import time
+import unittest
+
+import lsst.utils.tests
 from lsst.ctrl.execute.configurator import Configurator
 from lsst.ctrl.execute.runOrcaParser import RunOrcaParser
-import lsst.utils.tests
 
 
 def setup_module(module):
@@ -33,40 +34,62 @@ def setup_module(module):
 
 
 class TestConfigurator(lsst.utils.tests.TestCase):
-
     def getRemoteArgs(self):
-        sys.argv = ["configurator_test",
-                    "-p", "bigboxes",
-                    "-c", '"echo hello"',
-                    "-i", "$CTRL_EXECUTE_DIR/tests/testfiles/inputfile",
-                    "-e", "/tmp",
-                    "-N", "test_set",
-                    "-n", "16",
-                    "-v",
-                    ]
+        sys.argv = [
+            "configurator_test",
+            "-p",
+            "bigboxes",
+            "-c",
+            '"echo hello"',
+            "-i",
+            "$CTRL_EXECUTE_DIR/tests/testfiles/inputfile",
+            "-e",
+            "/tmp",
+            "-N",
+            "test_set",
+            "-n",
+            "16",
+            "-v",
+        ]
         return sys.argv
 
     def getLocalArgs(self):
-        sys.argv = ["configurator_test",
-                    "-p", "lsst",
-                    "-c", '"echo hello"',
-                    "-i", "$CTRL_EXECUTE_DIR/tests/testfiles/inputfile",
-                    "-e", "/tmp2",
-                    "-N", "test_set2",
-                    "-n", "12",
-                    ]
+        sys.argv = [
+            "configurator_test",
+            "-p",
+            "lsst",
+            "-c",
+            '"echo hello"',
+            "-i",
+            "$CTRL_EXECUTE_DIR/tests/testfiles/inputfile",
+            "-e",
+            "/tmp2",
+            "-N",
+            "test_set2",
+            "-n",
+            "12",
+        ]
         return sys.argv
 
     def getLocalWithSetupArgs(self):
-        sys.argv = ["configurator_test",
-                    "-p", "lsst",
-                    "-c", '"echo hello"',
-                    "-i", "$CTRL_EXECUTE_DIR/tests/testfiles/inputfile",
-                    "-e", "/tmp2",
-                    "-N", "test_set2",
-                    "-n", "12",
-                    "--setup", "fake_package", "1.0",
-                    ]
+        sys.argv = [
+            "configurator_test",
+            "-p",
+            "lsst",
+            "-c",
+            '"echo hello"',
+            "-i",
+            "$CTRL_EXECUTE_DIR/tests/testfiles/inputfile",
+            "-e",
+            "/tmp2",
+            "-N",
+            "test_set2",
+            "-n",
+            "12",
+            "--setup",
+            "fake_package",
+            "1.0",
+        ]
         return sys.argv
 
     def setup(self, args):

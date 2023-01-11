@@ -23,9 +23,7 @@
 #
 
 import argparse
-
 import sys
-
 from shlex import split as cmd_split
 
 
@@ -42,43 +40,35 @@ def makeArgumentParser(description, inRootsRequired=True, addRegistryOption=True
         description=description,
         fromfile_prefix_chars="@",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=" \n"
-               "ly.")
+        epilog=" \n" "ly.",
+    )
     parser.convert_arg_line_to_args = _line_to_args
 
     parser.add_argument(
-        "-s", "--source", dest="source",
-        help="Source site for file transfer.")
+        "-s", "--source", dest="source", help="Source site for file transfer."
+    )
+
+    parser.add_argument("-w", "--workerdir", dest="workerdir", help="workers directory")
+
+    parser.add_argument("-t", "--template", dest="template", help="template file")
+
+    parser.add_argument("-p", "--prescript", dest="prescript", help="pre shell script")
+
+    parser.add_argument("-r", "--runid", dest="runid", help="runid of production")
 
     parser.add_argument(
-        "-w", "--workerdir", dest="workerdir",
-        help="workers directory")
-
-    parser.add_argument(
-        "-t", "--template", dest="template",
-        help="template file")
-
-    parser.add_argument(
-        "-p", "--prescript", dest="prescript",
-        help="pre shell script")
-
-    parser.add_argument(
-        "-r", "--runid", dest="runid",
-        help="runid of production")
-
-    parser.add_argument(
-        "-i", "--idsPerJob", dest="idsPerJob",
-        help="number of ids to run per job")
+        "-i", "--idsPerJob", dest="idsPerJob", help="number of ids to run per job"
+    )
 
     return parser
 
 
 def writeVarsInfo(output, count, myDataTotal, visit, runid):
-    output.write("VARS A" + count + " var1=\"" + myDataTotal + "\" \n")
-    output.write("VARS A" + count + " var2=\"" + count + "\" \n")
-    output.write("VARS A" + count + " visit=\"" + visit + "\" \n")
-    output.write("VARS A" + count + " runid=\"" + runid + "\" \n")
-    output.write("VARS A" + count + " workerid=\"" + count + "\" \n")
+    output.write("VARS A" + count + ' var1="' + myDataTotal + '" \n')
+    output.write("VARS A" + count + ' var2="' + count + '" \n')
+    output.write("VARS A" + count + ' visit="' + visit + '" \n')
+    output.write("VARS A" + count + ' runid="' + runid + '" \n')
+    output.write("VARS A" + count + ' workerid="' + count + '" \n')
 
 
 def writeMapInfo(output, count, newDataTotal, myDataTotal):
@@ -86,7 +76,9 @@ def writeMapInfo(output, count, newDataTotal, myDataTotal):
     output.write(count + "  " + myDataTotal + "\n")
 
 
-def writeDagFile(pipeline, templateFile, infile, workerdir, prescriptFile, runid, idsPerJob):
+def writeDagFile(
+    pipeline, templateFile, infile, workerdir, prescriptFile, runid, idsPerJob
+):
     """
     Write Condor Dag Submission files.
     """
@@ -112,13 +104,13 @@ def writeDagFile(pipeline, templateFile, infile, workerdir, prescriptFile, runid
     configObj.write("DAGMAN_USER_LOG_SCAN_INTERVAL=5\n")
 
     outObj.write("CONFIG %s\n" % configname)
-    outObj.write("JOB A "+workerdir+"/" + pipeline + ".pre\n")
-    outObj.write("JOB B "+workerdir+"/" + pipeline + ".post\n")
+    outObj.write("JOB A " + workerdir + "/" + pipeline + ".pre\n")
+    outObj.write("JOB B " + workerdir + "/" + pipeline + ".post\n")
     outObj.write(" \n")
 
     print("prescriptFile = ", prescriptFile)
     if prescriptFile is not None:
-        outObj.write("SCRIPT PRE A "+prescriptFile+"\n")
+        outObj.write("SCRIPT PRE A " + prescriptFile + "\n")
 
     #
     # note: we make multiple passes through the input file because it could be
@@ -160,7 +152,9 @@ def writeDagFile(pipeline, templateFile, infile, workerdir, prescriptFile, runid
 
         if acount == listSize:
             count += 1
-            outObj.write("JOB A" + str(count) + " "+workerdir+"/" + templateFile + "\n")
+            outObj.write(
+                "JOB A" + str(count) + " " + workerdir + "/" + templateFile + "\n"
+            )
             myDataTotal = " X ".join(myDataList)
             newDataTotal = "_".join(newDataList)
             writeVarsInfo(outObj, str(count), myDataTotal, visit, runid)
@@ -181,7 +175,7 @@ def writeDagFile(pipeline, templateFile, infile, workerdir, prescriptFile, runid
     # to create one more worker to do so.
     if acount != 0:
         count += 1
-        outObj.write("JOB A" + str(count) + " "+workerdir+"/" + templateFile + "\n")
+        outObj.write("JOB A" + str(count) + " " + workerdir + "/" + templateFile + "\n")
         myDataTotal = " X ".join(myDataList)
         newDataTotal = "_".join(newDataList)
         writeVarsInfo(outObj, str(count), myDataTotal, visit, runid)
@@ -197,21 +191,31 @@ def writeDagFile(pipeline, templateFile, infile, workerdir, prescriptFile, runid
 
 
 def main():
-    print('Starting generateDag.py')
-    parser = makeArgumentParser(description="generateDag.py write a Condor DAG for job submission"
-                                "by reading input list and writing the attribute as an argument.")
-    print('Created parser')
+    print("Starting generateDag.py")
+    parser = makeArgumentParser(
+        description="generateDag.py write a Condor DAG for job submission"
+        "by reading input list and writing the attribute as an argument."
+    )
+    print("Created parser")
     ns = parser.parse_args()
-    print('Parsed Arguments')
+    print("Parsed Arguments")
     print(ns)
     print(ns.idsPerJob)
 
     pipeline = "Workflow"
 
-    writeDagFile(pipeline, ns.template, ns.source, ns.workerdir, ns.prescript, ns.runid, int(ns.idsPerJob))
+    writeDagFile(
+        pipeline,
+        ns.template,
+        ns.source,
+        ns.workerdir,
+        ns.prescript,
+        ns.runid,
+        int(ns.idsPerJob),
+    )
 
     sys.exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
