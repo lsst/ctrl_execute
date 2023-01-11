@@ -27,7 +27,8 @@ from lsst.ctrl.execute import envString
 
 
 class SeqFile:
-    """Class which can read and increment files used to store sequence numbers"""
+    """Class which can read and increment files used to store sequence
+    numbers"""
 
     def __init__(self, seqFileName):
         """Constructor
