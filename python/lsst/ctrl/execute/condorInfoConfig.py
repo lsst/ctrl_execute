@@ -27,7 +27,6 @@ from lsst.ctrl.execute import envString
 
 
 class FakeTypeMap(dict):
-
     def __init__(self, configClass):
         self.configClass = configClass
 
@@ -36,15 +35,15 @@ class FakeTypeMap(dict):
 
 
 class UserInfoConfig(pexConfig.Config):
-    """ User information
-    """
+    """User information"""
+
     name = pexConfig.Field(doc="user login name", dtype=str, default=None)
     home = pexConfig.Field(doc="user home directory", dtype=str, default=None)
 
 
 class UserConfig(pexConfig.Config):
-    """ User specific information
-    """
+    """User specific information"""
+
     user = pexConfig.ConfigField(doc="user", dtype=UserInfoConfig)
 
 
@@ -52,6 +51,7 @@ class CondorInfoConfig(pexConfig.Config):
     """A pex_config file describing the platform specific information about
     remote user logins.
     """
+
     platform = pexConfig.ConfigChoiceField("platform info", FakeTypeMap(UserConfig))
 
 

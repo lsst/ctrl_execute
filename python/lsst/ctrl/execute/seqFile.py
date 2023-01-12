@@ -21,13 +21,14 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from lsst.ctrl.execute import envString
 import os.path
+
+from lsst.ctrl.execute import envString
 
 
 class SeqFile:
-    """Class which can read and increment files used to store sequence numbers
-    """
+    """Class which can read and increment files used to store sequence
+    numbers"""
 
     def __init__(self, seqFileName):
         """Constructor
@@ -59,8 +60,7 @@ class SeqFile:
         return seq
 
     def writeSeq(self, seq):
-        """Write a sequence number
-        """
-        with open(self.fileName, 'w') as seqFile:
+        """Write a sequence number"""
+        with open(self.fileName, "w") as seqFile:
             print(seq, file=seqFile)
         seqFile.close()

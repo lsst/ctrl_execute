@@ -23,8 +23,9 @@
 #
 
 
-import sys
 import string
+import sys
+
 from lsst.ctrl.execute.qCommand import QCommand
 
 if __name__ == "__main__":
@@ -34,11 +35,21 @@ if __name__ == "__main__":
 
     # default to doing a status for the user, otherwise, pass the args to qstat
     if len(sys.argv) == 2:
-        command = "%s %s@%s %s/qstat -u%s" % (cmd.remoteLoginCmd,
-                                              cmd.userName, cmd.hostName, cmd.utilityPath, cmd.userName)
+        command = "%s %s@%s %s/qstat -u%s" % (
+            cmd.remoteLoginCmd,
+            cmd.userName,
+            cmd.hostName,
+            cmd.utilityPath,
+            cmd.userName,
+        )
     else:
-        command = "%s %s@%s %s/qstat %s" % (cmd.remoteLoginCmd, cmd.userName,
-                                            cmd.hostName, cmd.utilityPath, string.join(sys.argv[2:]))
+        command = "%s %s@%s %s/qstat %s" % (
+            cmd.remoteLoginCmd,
+            cmd.userName,
+            cmd.hostName,
+            cmd.utilityPath,
+            string.join(sys.argv[2:]),
+        )
 
     exitCode = cmd.runCommand(command)
     sys.exit(exitCode)

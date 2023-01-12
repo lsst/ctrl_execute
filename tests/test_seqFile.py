@@ -21,8 +21,9 @@
 #
 
 import unittest
-from lsst.ctrl.execute.seqFile import SeqFile
+
 import lsst.utils.tests
+from lsst.ctrl.execute.seqFile import SeqFile
 
 
 def setup_module(module):
@@ -30,7 +31,6 @@ def setup_module(module):
 
 
 class TestSeqFile(lsst.utils.tests.TestCase):
-
     def test1(self):
         with lsst.utils.tests.getTempFilePath(".seq") as filename:
             sf = SeqFile(filename)

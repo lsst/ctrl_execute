@@ -30,7 +30,6 @@ from lsst.ctrl.execute.allocator import Allocator
 
 
 class PbsPlugin(Allocator):
-
     def submit(self, platform, platformPkgDir):
         # This have specific paths to prevent abitrary binaries from being
         # executed. The "gsi"* utilities are configured to use either grid
@@ -43,10 +42,14 @@ class PbsPlugin(Allocator):
         self.loadPbs(configName)
         verbose = self.isVerbose()
 
-        pbsName = os.path.join(platformPkgDir, "etc", "templates", "generic.pbs.template")
+        pbsName = os.path.join(
+            platformPkgDir, "etc", "templates", "generic.pbs.template"
+        )
         generatedPbsFile = self.createPbsFile(pbsName)
 
-        condorFile = os.path.join(platformPkgDir, "etc", "templates", "glidein_condor_config.template")
+        condorFile = os.path.join(
+            platformPkgDir, "etc", "templates", "glidein_condor_config.template"
+        )
         generatedCondorConfigFile = self.createCondorConfigFile(condorFile)
 
         scratchDirParam = self.getScratchDirectory()
@@ -61,8 +64,14 @@ class PbsPlugin(Allocator):
         #
         # execute copy of PBS file to XSEDE node
         #
-        cmd = "%s %s %s@%s:%s/%s" % (remoteCopyCmd, generatedPbsFile, userName,
-                                     hostName, scratchDir, os.path.basename(generatedPbsFile))
+        cmd = "%s %s %s@%s:%s/%s" % (
+            remoteCopyCmd,
+            generatedPbsFile,
+            userName,
+            hostName,
+            scratchDir,
+            os.path.basename(generatedPbsFile),
+        )
         if verbose:
             print(cmd)
         exitCode = self.runCommand(cmd, verbose)
@@ -73,8 +82,14 @@ class PbsPlugin(Allocator):
         #
         # execute copy of Condor config file to XSEDE node
         #
-        cmd = "%s %s %s@%s:%s/%s" % (remoteCopyCmd, generatedCondorConfigFile, userName,
-                                     hostName, scratchDir, os.path.basename(generatedCondorConfigFile))
+        cmd = "%s %s %s@%s:%s/%s" % (
+            remoteCopyCmd,
+            generatedCondorConfigFile,
+            userName,
+            hostName,
+            scratchDir,
+            os.path.basename(generatedCondorConfigFile),
+        )
         if verbose:
             print(cmd)
         exitCode = self.runCommand(cmd, verbose)
@@ -85,8 +100,14 @@ class PbsPlugin(Allocator):
         #
         # execute qsub command on XSEDE node to perform Condor glide-in
         #
-        cmd = "%s %s@%s %s/qsub %s/%s" % (remoteLoginCmd, userName, hostName,
-                                          utilityPath, scratchDir, os.path.basename(generatedPbsFile))
+        cmd = "%s %s@%s %s/qsub %s/%s" % (
+            remoteLoginCmd,
+            userName,
+            hostName,
+            utilityPath,
+            scratchDir,
+            os.path.basename(generatedPbsFile),
+        )
         if verbose:
             print(cmd)
         exitCode = self.runCommand(cmd, verbose)

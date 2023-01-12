@@ -30,7 +30,6 @@ from lsst.ctrl.execute.allocator import Allocator
 
 
 class SlurmPlugin(Allocator):
-
     def submit(self, platform, platformPkgDir):
 
         configName = os.path.join(platformPkgDir, "etc", "config", "slurmConfig.py")
@@ -44,15 +43,21 @@ class SlurmPlugin(Allocator):
         template.substitute(USER_HOME=self.getUserHome())
 
         # create the slurm submit file
-        slurmName = os.path.join(platformPkgDir, "etc", "templates", "generic.slurm.template")
+        slurmName = os.path.join(
+            platformPkgDir, "etc", "templates", "generic.slurm.template"
+        )
         generatedSlurmFile = self.createSubmitFile(slurmName)
 
         # create the condor configuration file
-        condorFile = os.path.join(platformPkgDir, "etc", "templates", "glidein_condor_config.template")
+        condorFile = os.path.join(
+            platformPkgDir, "etc", "templates", "glidein_condor_config.template"
+        )
         self.createCondorConfigFile(condorFile)
 
         # create the script that the slurm submit file calls
-        allocationName = os.path.join(platformPkgDir, "etc", "templates", "allocation.sh.template")
+        allocationName = os.path.join(
+            platformPkgDir, "etc", "templates", "allocation.sh.template"
+        )
         self.createAllocationFile(allocationName)
 
         # run the sbatch command
@@ -72,7 +77,9 @@ class SlurmPlugin(Allocator):
 
     def loadSlurm(self, name, platformPkgDir):
         if self.opts.reservation is not None:
-            self.defaults["RESERVATION"] = "#SBATCH --reservation=%s" % self.opts.reservation
+            self.defaults["RESERVATION"] = (
+                "#SBATCH --reservation=%s" % self.opts.reservation
+            )
         else:
             self.defaults["RESERVATION"] = ""
 
@@ -82,8 +89,12 @@ class SlurmPlugin(Allocator):
         scratchDir = template.substitute(USER_NAME=self.getUserName())
         self.defaults["SCRATCH_DIR"] = scratchDir
 
-        self.allocationFileName = os.path.join(self.configDir, "allocation_%s.sh" % self.uniqueIdentifier)
-        self.defaults["GENERATED_ALLOCATE_SCRIPT"] = os.path.basename(self.allocationFileName)
+        self.allocationFileName = os.path.join(
+            self.configDir, "allocation_%s.sh" % self.uniqueIdentifier
+        )
+        self.defaults["GENERATED_ALLOCATE_SCRIPT"] = os.path.basename(
+            self.allocationFileName
+        )
 
         # handle dynamic slot block template:
         # 1) if it isn't specified, just put a comment in it's place
@@ -95,7 +106,9 @@ class SlurmPlugin(Allocator):
             return
 
         if self.opts.dynamic == "__default__":
-            dynamicSlotsName = os.path.join(platformPkgDir, "etc", "templates", "dynamic_slots.template")
+            dynamicSlotsName = os.path.join(
+                platformPkgDir, "etc", "templates", "dynamic_slots.template"
+            )
         else:
             dynamicSlotsName = self.opts.dynamic
 

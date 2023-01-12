@@ -22,8 +22,8 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import re
 import os
+import re
 import sys
 
 # Given a string, look for any $ prefixed word, attempt to substitute
@@ -33,14 +33,14 @@ import sys
 
 
 def resolve(strVal):
-    p = re.compile(r'\$[a-zA-Z0-9_]+')
+    p = re.compile(r"\$[a-zA-Z0-9_]+")
     retVal = strVal
     exprs = p.findall(retVal)
     for i in exprs:
         var = i[1:]
         val = os.getenv(var, None)
         if val is None:
-            raise RuntimeError("couldn't find environment variable "+i)
+            raise RuntimeError("couldn't find environment variable " + i)
             sys.exit(120)
         retVal = p.sub(val, retVal, 1)
     return retVal

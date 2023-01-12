@@ -22,8 +22,9 @@
 
 import sys
 import unittest
-from lsst.ctrl.execute.allocatorParser import AllocatorParser
+
 import lsst.utils.tests
+from lsst.ctrl.execute.allocatorParser import AllocatorParser
 
 
 def setup_module(module):
@@ -31,20 +32,27 @@ def setup_module(module):
 
 
 class TestAllocatorParser(lsst.utils.tests.TestCase):
-
     def test1(self):
-        sys.argv = ["test1",
-                    "test_platform",
-                    "-n", "64",
-                    "-c", "12",
-                    "-m", "00:30:00",
-                    "-N", "test_set",
-                    "-q", "normal",
-                    "-e",
-                    "-O", "outlog",
-                    "-E", "errlog",
-                    "-v",
-                    ]
+        sys.argv = [
+            "test1",
+            "test_platform",
+            "-n",
+            "64",
+            "-c",
+            "12",
+            "-m",
+            "00:30:00",
+            "-N",
+            "test_set",
+            "-q",
+            "normal",
+            "-e",
+            "-O",
+            "outlog",
+            "-E",
+            "errlog",
+            "-v",
+        ]
 
         al = AllocatorParser(sys.argv[0])
         args = al.getArgs()

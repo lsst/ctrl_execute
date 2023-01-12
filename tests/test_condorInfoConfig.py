@@ -19,10 +19,11 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
-import unittest
 import os.path
-from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
+import unittest
+
 import lsst.utils.tests
+from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
 
 
 def setup_module(module):
@@ -30,7 +31,6 @@ def setup_module(module):
 
 
 class TestCondorInfoConfig(lsst.utils.tests.TestCase):
-
     def test1(self):
         path = os.path.join("tests", "testfiles", "config_condorInfo.py")
         config = CondorInfoConfig()

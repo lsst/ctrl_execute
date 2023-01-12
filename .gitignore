@@ -11,4 +11,3 @@ bin/allocateNodes.py
 bin/dagIdInfo.py
 bin/qdelete.py
 bin/qstatus.py
-bin/runOrca.py

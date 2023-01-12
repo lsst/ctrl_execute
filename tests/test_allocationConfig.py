@@ -19,10 +19,11 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
-import unittest
 import os.path
-from lsst.ctrl.execute.allocationConfig import AllocationConfig
+import unittest
+
 import lsst.utils.tests
+from lsst.ctrl.execute.allocationConfig import AllocationConfig
 
 
 def setup_module(module):
@@ -30,7 +31,6 @@ def setup_module(module):
 
 
 class AllocationConfigTest(lsst.utils.tests.TestCase):
-
     def setUp(self):
         self.config = AllocationConfig()
 
