@@ -67,7 +67,7 @@ class AllocatorParser:
             action="store",
             default=None,
             dest="nodeCount",
-            help="number of nodes to use",
+            help="number of glideins to submit; these are chunks of a node, size the number of cores/cpus",
             type=int,
             required=True,
         )
@@ -77,7 +77,7 @@ class AllocatorParser:
             action="store",
             default=None,
             dest="cpus",
-            help="cpus per node (WAS '-s' (--slots) option)",
+            help="cores / cpus per glidein",
             type=int,
             required=True,
         )
@@ -87,33 +87,17 @@ class AllocatorParser:
             action="store",
             dest="maximumWallClock",
             default=None,
-            help="maximum wall clock time",
+            help="maximum wall clock time; e.g., 3600, 10:00:00, 6-00:00:00, etc",
             type=str,
             required=True,
-        )
-        parser.add_argument(
-            "-N",
-            "--node-set",
-            action="store",
-            dest="nodeSet",
-            default=None,
-            help="node set name",
         )
         parser.add_argument(
             "-q",
             "--queue",
             action="store",
             dest="queue",
-            default="debug",
-            help="queue name",
-        )
-        parser.add_argument(
-            "-e",
-            "--email",
-            action="store_true",
-            dest="email",
-            default=None,
-            help="email notification flag",
+            default="roma,milano",
+            help="queue / partition  name",
         )
         parser.add_argument(
             "-O",
@@ -121,7 +105,7 @@ class AllocatorParser:
             action="store",
             dest="outputLog",
             default=None,
-            help="Output log filename",
+            help="Output log filename; this option for PBS, unused with Slurm",
         )
         parser.add_argument(
             "-E",
@@ -129,7 +113,7 @@ class AllocatorParser:
             action="store",
             dest="errorLog",
             default=None,
-            help="Error log filename",
+            help="Error log filename; this option for PBS, unused with Slurm",
         )
         parser.add_argument(
             "-g",
@@ -149,7 +133,7 @@ class AllocatorParser:
             action="store",
             dest="reservation",
             default=None,
-            help="run id",
+            help="target a particular Slurm reservation",
         )
         parser.add_argument(
             "-d",
@@ -160,7 +144,7 @@ class AllocatorParser:
             dest="dynamic",
             type=str,
             default=None,
-            help="configure to use dynamic slots",
+            help="configure to use dynamic / partitionable slot; legacy option, as this is always enabled now",
         )
 
         self.args = parser.parse_args()

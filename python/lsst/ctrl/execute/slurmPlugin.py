@@ -24,6 +24,7 @@
 
 import os
 import sys
+import subprocess
 from string import Template
 
 from lsst.ctrl.execute.allocator import Allocator
@@ -60,20 +61,45 @@ class SlurmPlugin(Allocator):
         )
         self.createAllocationFile(allocationName)
 
+        nodes = self.getNodes()
+        print("Targeting %s glidein(s) for the computing pool/set." % nodes)
+
         # run the sbatch command
         template = Template(self.getLocalScratchDirectory())
         localScratchDir = template.substitute(USER_NAME=self.getUserName())
         if not os.path.exists(localScratchDir):
             os.mkdir(localScratchDir)
         os.chdir(localScratchDir)
-        cmd = "sbatch %s" % generatedSlurmFile
-        exitCode = self.runCommand(cmd, verbose)
-        if exitCode != 0:
-            print("error running %s" % cmd)
-            sys.exit(exitCode)
+        if verbose:
+            print("The working local scratch directory localScratchDir is %s "  % localScratchDir)
+            print("The generated Slurm submit file is %s " % generatedSlurmFile)
 
-        # print node set information
-        self.printNodeSetInfo()
+        cmd = "sbatch %s" % generatedSlurmFile
+
+        auser = self.getUserName()
+        jobname = "".join( [ "glide_", auser ] )
+        if verbose:
+            print("The unix user name is %s " % auser)
+            print("The Slurm job name for the glidein jobs is %s " % jobname)
+            print("The user home directory is %s " % self.getUserHome())
+
+        batcmd = "".join( 
+              [ "squeue --noheader --name=",  jobname, " | wc -l" ]
+        )
+        result = subprocess.check_output(batcmd, shell=True)
+        strResult=result.decode("UTF-8")
+
+        print("Detected this number of preexisting glidein jobs: %s " % strResult)
+
+        numberToAdd = nodes - int(strResult)
+        print("The number of glidein jobs to submit now is %s" % numberToAdd)
+
+        for glide in range(0, numberToAdd):
+            print("Submitting glidein %s " % glide)
+            exitCode = self.runCommand(cmd, verbose)
+            if exitCode != 0:
+                print("error running %s" % cmd)
+                sys.exit(exitCode)
 
     def loadSlurm(self, name, platformPkgDir):
         if self.opts.reservation is not None:
@@ -129,6 +155,6 @@ class SlurmPlugin(Allocator):
         """
         outfile = self.createFile(input, self.allocationFileName)
         if self.opts.verbose:
-            print("wrote new allocation script file to %s" % outfile)
+            print("Wrote new Slurm job allocation bash script to %s" % outfile)
         os.chmod(outfile, 0o755)
         return outfile

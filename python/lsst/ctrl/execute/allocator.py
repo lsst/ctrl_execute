@@ -104,24 +104,8 @@ class Allocator:
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
 
         self.commandLineDefaults["QUEUE"] = self.opts.queue
-        if self.opts.email == "no":
-            self.commandLineDefaults["EMAIL_NOTIFICATION"] = "#"
 
         self.load()
-
-    def createNodeSetName(self):
-        """Creates the next "node_set" name, using the remote user name and
-        a stored sequence number.
-
-        Returns
-        -------
-        nodeSetName : `str`
-            the new node_set name
-        """
-        s = SeqFile("$HOME/.lsst/node-set.seq")
-        n = s.nextSeq()
-        nodeSetName = "%s_%d" % (self.defaults["USER_NAME"], n)
-        return nodeSetName
 
     def createUniqueIdentifier(self):
         """Creates a unique file identifier, based on the user's name
@@ -184,22 +168,15 @@ class Allocator:
         else:
             self.defaults["GLIDEIN_SHUTDOWN"] = str(self.opts.glideinShutdown)
 
-        if self.opts.nodeSet is None:
-            self.defaults["NODE_SET"] = self.createNodeSetName()
-        else:
-            self.defaults["NODE_SET"] = self.opts.nodeSet
-
-        nodeSetName = self.defaults["NODE_SET"]
-
         if self.opts.outputLog is not None:
             self.defaults["OUTPUT_LOG"] = self.opts.outputLog
         else:
-            self.defaults["OUTPUT_LOG"] = "%s.out" % nodeSetName
+            self.defaults["OUTPUT_LOG"] = "glide.out"
 
         if self.opts.errorLog is not None:
             self.defaults["ERROR_LOG"] = self.opts.errorLog
         else:
-            self.defaults["ERROR_LOG"] = "%s.err" % nodeSetName
+            self.defaults["ERROR_LOG"] = "glide.err"
 
         # This is the TOTAL number of cores in the job, not just the total
         # of the cores you intend to use.   In other words, the total available
@@ -212,7 +189,9 @@ class Allocator:
         self.uniqueIdentifier = self.createUniqueIdentifier()
 
         # write these pbs and config files to {LOCAL_DIR}/configs
-        self.configDir = os.path.join(self.defaults["LOCAL_SCRATCH"], "configs")
+        self.configDir = os.path.join(
+            self.defaults["LOCAL_SCRATCH"], self.uniqueIdentifier, "configs"
+        )
         if not os.path.exists(self.configDir):
             os.makedirs(self.configDir)
 
@@ -238,7 +217,7 @@ class Allocator:
         """
         outfile = self.createFile(inputFile, self.submitFileName)
         if self.opts.verbose:
-            print("wrote new PBS file to %s" % outfile)
+            print("Wrote new Slurm submit file to %s" % outfile)
         return outfile
 
     def createCondorConfigFile(self, input):
@@ -251,7 +230,7 @@ class Allocator:
         """
         outfile = self.createFile(input, self.condorConfigFileName)
         if self.opts.verbose:
-            print("wrote new condor_config file to %s" % outfile)
+            print("Wrote new condor configuration file to %s" % outfile)
         return outfile
 
     def createFile(self, input, output):
@@ -265,7 +244,7 @@ class Allocator:
         """
         resolvedInputName = envString.resolve(input)
         if self.opts.verbose:
-            print("creating file using %s" % resolvedInputName)
+            print("Creating file from template using %s" % resolvedInputName)
         template = TemplateWriter()
         # Uses the associative arrays of "defaults" and "commandLineDefaults"
         # to write out the new file from the template.
@@ -377,20 +356,30 @@ class Allocator:
             nodeString = "s"
         if self.opts.dynamic is None:
             print(
-                "%s node%s will be allocated on %s with %s cpus per node and maximum time limit of %s"
-                % (nodes, nodeString, self.platform, cpus, wallClock)
+                "%s glidein%s will be allocated on %s using default dynamic slots configuration."
+                % (nodes, nodeString, self.platform)
+            )
+            print(
+                "There will be %s cores per glidein and a maximum time limit of %s" 
+                % (cpus, wallClock)
             )
         elif self.opts.dynamic == "__default__":
             print(
-                "%s node%s will be allocated on %s using default dynamic slots configuration \
-with %s cpus per node and maximum time limit of %s"
-                % (nodes, nodeString, self.platform, cpus, wallClock)
+                "%s glidein%s will be allocated on %s using default dynamic slots configuration."
+                % (nodes, nodeString, self.platform)
+            )
+            print(
+                "There will be %s cores per glidein and a maximum time limit of %s" 
+                % (cpus, wallClock)
             )
         else:
             print(
-                "%s node%s will be allocated on %s using dynamic slot block specified in \
-'%s' with %s cpus per node and maximum time limit of %s"
-                % (nodes, nodeString, self.platform, self.opts.dynamic, cpus, wallClock)
+                "%s node%s will be allocated on %s using dynamic slot block specified in '%s'" 
+                % (nodes, nodeString, self.platform, self.opts.dynamic)
+            )
+            print(
+                "There will be  %s cores per node and maximum time limit of %s"
+                % (cpus, wallClock)
             )
         print("Node set name:")
         print(self.getNodeSetName())
