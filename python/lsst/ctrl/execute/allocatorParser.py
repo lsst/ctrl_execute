@@ -144,7 +144,7 @@ class AllocatorParser:
             dest="dynamic",
             type=str,
             default=None,
-            help="configure to use dynamic / partitionable slot; legacy option, as this is always enabled now",
+            help="configure to use dynamic/partitionable slot; legacy option: this is always enabled now",
         )
 
         self.args = parser.parse_args()

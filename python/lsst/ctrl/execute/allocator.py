@@ -31,7 +31,6 @@ from string import Template
 from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
-from lsst.ctrl.execute.seqFile import SeqFile
 from lsst.ctrl.execute.templateWriter import TemplateWriter
 
 
@@ -76,13 +75,11 @@ class Allocator:
             if name == self.platform:
                 user_name = condorInfoConfig.platform[name].user.name
                 user_home = condorInfoConfig.platform[name].user.home
-
         if self.platform == "lsst":
             if user_name is None:
                 user_name = pwd.getpwuid(os.geteuid()).pw_name
             if user_home is None:
                 user_home = os.getenv("HOME")
-
         if user_name is None:
             raise RuntimeError(
                 "error: %s does not specify user name for platform == %s"
@@ -93,18 +90,13 @@ class Allocator:
                 "error: %s does not specify user home for platform == %s"
                 % (condorInfoFileName, self.platform)
             )
-
         self.defaults["USER_NAME"] = user_name
         self.defaults["USER_HOME"] = user_home
-
         self.commandLineDefaults = {}
-
         self.commandLineDefaults["NODE_COUNT"] = self.opts.nodeCount
         self.commandLineDefaults["CPUS"] = self.opts.cpus
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
-
         self.commandLineDefaults["QUEUE"] = self.opts.queue
-
         self.load()
 
     def createUniqueIdentifier(self):
