@@ -352,7 +352,7 @@ class Allocator:
                 % (nodes, nodeString, self.platform)
             )
             print(
-                "There will be %s cores per glidein and a maximum time limit of %s" 
+                "There will be %s cores per glidein and a maximum time limit of %s"
                 % (cpus, wallClock)
             )
         elif self.opts.dynamic == "__default__":
@@ -361,12 +361,12 @@ class Allocator:
                 % (nodes, nodeString, self.platform)
             )
             print(
-                "There will be %s cores per glidein and a maximum time limit of %s" 
+                "There will be %s cores per glidein and a maximum time limit of %s"
                 % (cpus, wallClock)
             )
         else:
             print(
-                "%s node%s will be allocated on %s using dynamic slot block specified in '%s'" 
+                "%s node%s will be allocated on %s using dynamic slot block specified in '%s'"
                 % (nodes, nodeString, self.platform, self.opts.dynamic)
             )
             print(

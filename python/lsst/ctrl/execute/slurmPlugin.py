@@ -71,7 +71,11 @@ class SlurmPlugin(Allocator):
             os.mkdir(localScratchDir)
         os.chdir(localScratchDir)
         if verbose:
-            print("The working local scratch directory localScratchDir is %s " % localScratchDir)
+            print(
+                "The working local scratch directory localScratchDir is %s "
+                % localScratchDir
+            )
+
             print("The generated Slurm submit file is %s " % generatedSlurmFile)
 
         cmd = "sbatch %s" % generatedSlurmFile
@@ -83,9 +87,7 @@ class SlurmPlugin(Allocator):
             print("The Slurm job name for the glidein jobs is %s " % jobname)
             print("The user home directory is %s " % self.getUserHome())
 
-        batcmd = "".join(
-            ["squeue --noheader --name=", jobname, " | wc -l"]
-        )
+        batcmd = "".join(["squeue --noheader --name=", jobname, " | wc -l"])
         result = subprocess.check_output(batcmd, shell=True)
         strResult = result.decode("UTF-8")
 
