@@ -33,7 +33,6 @@ class QCommand:
     """A class which wraps qsub-style commands for execution"""
 
     def __init__(self, platform):
-
         # can handle both grid-proxy and ssh logins
         self.remoteLoginCmd = "/usr/bin/gsissh"
 
