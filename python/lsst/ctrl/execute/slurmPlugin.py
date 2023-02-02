@@ -32,7 +32,6 @@ from lsst.ctrl.execute.allocator import Allocator
 
 class SlurmPlugin(Allocator):
     def submit(self, platform, platformPkgDir):
-
         configName = os.path.join(platformPkgDir, "etc", "config", "slurmConfig.py")
 
         self.loadSlurm(configName, platformPkgDir)

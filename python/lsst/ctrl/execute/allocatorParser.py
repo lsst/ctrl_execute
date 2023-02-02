@@ -143,7 +143,7 @@ class AllocatorParser:
             action="store",
             dest="dynamic",
             type=str,
-            default=None,
+            default="__default__",
             help="configure to use dynamic/partitionable slot; legacy option: this is always enabled now",
         )
 

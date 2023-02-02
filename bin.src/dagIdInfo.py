@@ -29,7 +29,6 @@ import sys
 # extracts a line from a DAG file to show which ids were processed for a
 # particular dag node
 if __name__ == "__main__":
-
     if len(sys.argv) != 3:
         print("usage:  %s dagNodeName filename" % os.path.basename(sys.argv[0]))
         sys.exit(errno.EINVAL)
