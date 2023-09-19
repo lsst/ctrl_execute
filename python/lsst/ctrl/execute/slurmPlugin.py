@@ -36,6 +36,7 @@ class SlurmPlugin(Allocator):
 
         self.loadSlurm(configName, platformPkgDir)
         verbose = self.isVerbose()
+        auto    = self.isAuto()
 
         # create the fully-resolved scratch directory string
         scratchDirParam = self.getScratchDirectory()
@@ -60,11 +61,9 @@ class SlurmPlugin(Allocator):
         )
         self.createAllocationFile(allocationName)
 
-        nodes = self.getNodes()
         cpus = self.getCPUs()
         memoryPerCore = self.getMemoryPerCore()
         totalMemory = cpus * memoryPerCore
-        print("Targeting %s glidein(s) for the computing pool/set." % nodes)
 
         # run the sbatch command
         template = Template(self.getLocalScratchDirectory())
@@ -89,14 +88,23 @@ class SlurmPlugin(Allocator):
             print("The Slurm job name for the glidein jobs is %s " % jobname)
             print("The user home directory is %s " % self.getUserHome())
 
-        batcmd = "".join(["squeue --noheader --name=", jobname, " | wc -l"])
-        result = subprocess.check_output(batcmd, shell=True)
-        strResult = result.decode("UTF-8")
+        if auto:
+            numberToAdd = self.glideinsFromJobPressure()
+            print("The number of glidein jobs to submit now is %s" % numberToAdd)
+        else:
+            nodes = self.getNodes()
+            # In this case 'nodes' is the Target.
+            print("Targeting %s glidein(s) for the computing pool/set." % nodes)
 
-        print("Detected this number of preexisting glidein jobs: %s " % strResult)
+            batcmd = "".join(["squeue --noheader --name=", jobname, " | wc -l"])
+            print("The squeue command is: %s " % batcmd)
+            result = subprocess.check_output(batcmd, shell=True)
+            strResult = result.decode("UTF-8")
 
-        numberToAdd = nodes - int(strResult)
-        print("The number of glidein jobs to submit now is %s" % numberToAdd)
+            print("Detected this number of preexisting glidein jobs: %s " % strResult)
+
+            numberToAdd = nodes - int(strResult)
+            print("The number of glidein jobs to submit now is %s" % numberToAdd)
 
         for glide in range(0, numberToAdd):
             print("Submitting glidein %s " % glide)
@@ -162,3 +170,136 @@ class SlurmPlugin(Allocator):
             print("Wrote new Slurm job allocation bash script to %s" % outfile)
         os.chmod(outfile, 0o755)
         return outfile
+
+
+    def glideinsFromJobPressure(self):
+        """Calculate the number of glideins needed from job pressure using glideinwms calls
+
+        Returns
+        -------
+        number : `str`
+            The number of glideins
+        """
+
+        import math
+
+        from glideinwms.lib import condorMonitor
+
+        verbose = self.isVerbose()
+
+        nodes = self.getNodes()
+        cpus = self.getCPUs()
+        # maxNumberOfGlideins=80
+        # coresPerGlidein=16 
+        maxNumberOfGlideins=nodes
+        coresPerGlidein=cpus 
+        ratioMemCore=4096
+
+        # initialize counters
+        totalCores=0
+        tatalGlidein=0
+
+        try:
+            schedd="sdfrome001.sdf.slac.stanford.edu"
+            print("glideinsFromJobPressure: Make an instance of CondorQ class")
+            condorq = condorMonitor.CondorQ(schedd)
+            # format_list=[("JobStatus", "i"), ("EnteredCurrentStatus", "i"), ("ServerTime", "i"), ("RemoteHost", "s")]
+            ####  w  format_list=[("JobStatus", "i"), ("Owner", "s"), ("RemoteHost", "s"), ("RequestCpus", "i")]
+            format_list=[("JobStatus", "i"), ("Owner", "s"), ("RequestCpus", "i"), ("JobUniverse", "i"), ("RequestMemory", "i")]
+            # do we ever need :
+            # Ideas : ClusterId , ProcId, User
+            #
+            # full_constraint = "True"
+            #
+            # Idle jobs, vanilla universe, owned by me 
+            #
+            full_constraint = '(Owner=="daues") && (JobStatus==1) && (JobUniverse==5)'
+            #
+            # full_constraint = '(Owner=="daues")'
+            # full_constraint = '(Owner=?="mgower")'
+            condorq.load(full_constraint, format_list)
+            condorq_data = condorq.fetchStored()
+            # if len(condorq.fetchStored()) > 0:
+            if len(condorq_data) > 0:
+                print("glideinsFromJobPressure: Fetched")
+                print(len(condorq_data))
+                if verbose:
+                    print(condorq_data)
+                # disassemble the dictionary of dictionaries
+                for jid in list(condorq_data.keys()):
+                    job = condorq_data[jid]
+                    ## job is now like {'JobStatus': 1, .., 'RequestMemory': 1, 'RequestCpus': 1, 'JobUniverse': 5, 'Owner': 'daues'}
+                    thisCores=job["RequestCpus"]
+                    thisMemory=job["RequestMemory"]
+                    totalCores=totalCores+thisCores
+                    if verbose:
+                        print(f"glideinsFromJobPressure: The key in the dictionary is  {jid}")
+                        print(f"\tRequestCpus {thisCores}")
+                        print(f"\tCurrent value of totalCores {totalCores}")
+                    thisRatio=thisMemory/ratioMemCore
+                    if thisRatio > thisCores:
+                        if verbose:
+                            print("\t\tNeed to Add More:")
+                            print(f"\t\tRequestMemory is {thisMemory} ")
+                            print(f"\t\tRatio to 4 GB is  {thisRatio} ")
+                        totalCores=totalCores+(thisRatio-thisCores)
+                        if verbose:
+                            print(f"\t\tCurrent value of totalCores {totalCores}")
+
+            else:
+                print("Length Zero")
+                print(len(condorq_data))
+                #     out_condorq_dict[schedd] = condorq
+        except condorMonitor.QueryError:
+            print("QueryError")
+        except RuntimeError as e:
+            print("RuntimeError")
+        except Exception:
+            print("Exception")
+
+        print(f"glideinsFromJobPressure: The final TotalCores is {totalCores}")
+        numberOfGlideins=math.ceil(totalCores/coresPerGlidein)
+        print(f"glideinsFromJobPressure: Target number of Glideins for Idle Jobs is {numberOfGlideins}")
+
+        #  squeue --noheader --name=glide_daues --states=PD
+        #  squeue --noheader --name=glide_daues --states=R
+
+        # Check Slurm queue Running glideins
+        auser = self.getUserName()
+        jobname = "".join(["glide_", auser])
+        existingGlideinsRunning=10
+        batcmd = "".join(["squeue --noheader --states=R  --name=", jobname, " | wc -l"])
+        print("The squeue command is: %s " % batcmd)
+        resultR = subprocess.check_output(batcmd, shell=True)
+        existingGlideinsRunning = int(resultR.decode("UTF-8"))
+
+        # Check Slurm queue Idle Glideins
+        existingGlideinsIdle=10
+        batcmd = "".join(["squeue --noheader --states=PD --name=", jobname, " | wc -l"])
+        print("The squeue command is: %s " % batcmd)
+        resultPD = subprocess.check_output(batcmd, shell=True)
+        existingGlideinsIdle = int(resultPD.decode("UTF-8"))
+
+        print(f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}")
+        print(f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}")
+        numberOfGlideinsRed=numberOfGlideins-existingGlideinsIdle
+
+        print(f"glideinsFromJobPressure: Target number of Glideins Max to Submit {numberOfGlideinsRed}")
+
+        maxIdleGlideins=maxNumberOfGlideins-existingGlideinsRunning
+        maxSubmitGlideins=maxIdleGlideins-existingGlideinsIdle
+
+        print(f"glideinsFromJobPressure: maxNumberOfGlideins {maxNumberOfGlideins}")
+        print(f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}")
+        print(f"glideinsFromJobPressure: maxIdleGlideins {maxIdleGlideins}")
+        print(f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}")
+        print(f"glideinsFromJobPressure: maxSubmitGlideins {maxSubmitGlideins}")
+
+     
+        if numberOfGlideinsRed > maxSubmitGlideins:
+            numberOfGlideinsRed = maxSubmitGlideins
+
+        print(f"glideinsFromJobPressure: The number of Glideins to submit now is  {numberOfGlideinsRed}")
+
+        return numberOfGlideinsRed
+

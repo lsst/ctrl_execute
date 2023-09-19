@@ -260,6 +260,12 @@ class Allocator:
         """
         return self.opts.verbose
 
+    def isAuto(self):
+        """Status of the auto flag
+        @return True if the flag was set, False otherwise
+        """
+        return self.opts.auto
+
     def getUserName(self):
         """Accessor for USER_NAME
         @return the value of USER_NAME
