@@ -309,8 +309,7 @@ class Allocator:
         """Accessor for MemoryPerCore
         @return the value of MemoryPerCore
         """
-        MemoryPerCore=4096
-        # MemoryPerCore=8192
+        MemoryPerCore = 4096
         return MemoryPerCore
 
     def getCPUs(self):

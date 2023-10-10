@@ -61,9 +61,9 @@ class SlurmPlugin(Allocator):
         self.createAllocationFile(allocationName)
 
         nodes = self.getNodes()
-        cpus  = self.getCPUs()
+        cpus = self.getCPUs()
         memoryPerCore = self.getMemoryPerCore()
-        totalMemory = cpus*memoryPerCore
+        totalMemory = cpus * memoryPerCore
         print("Targeting %s glidein(s) for the computing pool/set." % nodes)
 
         # run the sbatch command
@@ -80,7 +80,7 @@ class SlurmPlugin(Allocator):
 
             print("The generated Slurm submit file is %s " % generatedSlurmFile)
 
-        cmd = "sbatch --mem %s %s" % ( totalMemory, generatedSlurmFile )
+        cmd = "sbatch --mem %s %s" % (totalMemory, generatedSlurmFile)
 
         auser = self.getUserName()
         jobname = "".join(["glide_", auser])
