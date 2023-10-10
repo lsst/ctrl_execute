@@ -82,6 +82,24 @@ class AllocatorParser:
             required=True,
         )
         parser.add_argument(
+            "-a",
+            "--account",
+            action="store",
+            default="rubin",
+            dest="account",
+            help="Slurm account for glidein job",
+            type=str,
+        )
+        parser.add_argument(
+            "-s",
+            "--qos",
+            action="store",
+            default="preemptable",
+            dest="qos",
+            help="Slurm qos or glidein job",
+            type=str,
+        )
+        parser.add_argument(
             "-m",
             "--maximum-wall-clock",
             action="store",
