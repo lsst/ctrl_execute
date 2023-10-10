@@ -94,7 +94,7 @@ class AllocatorParser:
             "-s",
             "--qos",
             action="store",
-            default="preemptable",
+            default="normal",
             dest="qos",
             help="Slurm qos or glidein job",
             type=str,
