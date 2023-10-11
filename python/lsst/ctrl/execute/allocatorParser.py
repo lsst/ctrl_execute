@@ -85,7 +85,7 @@ class AllocatorParser:
             "-a",
             "--account",
             action="store",
-            default="rubin",
+            default="rubin:developers",
             dest="account",
             help="Slurm account for glidein job",
             type=str,
