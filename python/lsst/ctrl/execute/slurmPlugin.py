@@ -182,6 +182,7 @@ class SlurmPlugin(Allocator):
         """
 
         import math
+        import socket
 
         from glideinwms.lib import condorMonitor
 
@@ -200,7 +201,7 @@ class SlurmPlugin(Allocator):
         tatalGlidein=0
 
         try:
-            schedd="sdfrome001.sdf.slac.stanford.edu"
+            schedd=socket.getfqdn()
             print("glideinsFromJobPressure: Make an instance of CondorQ class")
             condorq = condorMonitor.CondorQ(schedd)
             # format_list=[("JobStatus", "i"), ("EnteredCurrentStatus", "i"), ("ServerTime", "i"), ("RemoteHost", "s")]
