@@ -64,22 +64,18 @@ class Allocator:
 
         self.platform = platform
 
-        # Look up the user's name and home directory in the
+        # Look up the user's name and home and scratch directory in the
         # $HOME/.lsst/condor-info.py file
-        # If the platform is lsst, and the user_name or user_home
-        # is not in there, then default to user running this
-        # command and the value of $HOME, respectively.
         user_name = None
         user_home = None
+        user_scratch = None
         for name in condorInfoConfig.platform:
             if name == self.platform:
                 user_name = condorInfoConfig.platform[name].user.name
                 user_home = condorInfoConfig.platform[name].user.home
-        if self.platform == "lsst":
-            if user_name is None:
-                user_name = pwd.getpwuid(os.geteuid()).pw_name
-            if user_home is None:
-                user_home = os.getenv("HOME")
+                user_scratch = condorInfoConfig.platform[name].user.scratch
+                if user_scratch is None and "SCRATCH" in os.environ:
+                    user_scratch = os.environ["SCRATCH"]
         if user_name is None:
             raise RuntimeError(
                 "error: %s does not specify user name for platform == %s"
@@ -90,8 +86,14 @@ class Allocator:
                 "error: %s does not specify user home for platform == %s"
                 % (condorInfoFileName, self.platform)
             )
+        if user_scratch is None:
+            raise RuntimeError(
+                "error: %s does not specify user scratch for platform == %s"
+                % (condorInfoFileName, self.platform)
+            )
         self.defaults["USER_NAME"] = user_name
         self.defaults["USER_HOME"] = user_home
+        self.defaults["USER_SCRATCH"] = user_scratch
         self.commandLineDefaults = {}
         self.commandLineDefaults["NODE_COUNT"] = self.opts.nodeCount
         self.commandLineDefaults["CPUS"] = self.opts.cpus
@@ -135,7 +137,7 @@ class Allocator:
         """
         tempLocalScratch = Template(self.configuration.platform.localScratch)
         self.defaults["LOCAL_SCRATCH"] = tempLocalScratch.substitute(
-            USER_NAME=self.defaults["USER_NAME"]
+            USER_SCRATCH=self.defaults["USER_SCRATCH"]
         )
         # print("localScratch-> %s" % self.defaults["LOCAL_SCRATCH"])
         self.defaults["SCHEDULER"] = self.configuration.platform.scheduler
@@ -269,6 +271,12 @@ class Allocator:
         @return the value of USER_HOME
         """
         return self.getParameter("USER_HOME")
+
+    def getUserScratch(self):
+        """Accessor for USER_SCRATCH
+        @return the value of USER_SCRATCH
+        """
+        return self.getParameter("USER_SCRATCH")
 
     def getHostName(self):
         """Accessor for HOST_NAME

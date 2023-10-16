@@ -39,6 +39,7 @@ class UserInfoConfig(pexConfig.Config):
 
     name = pexConfig.Field(doc="user login name", dtype=str, default=None)
     home = pexConfig.Field(doc="user home directory", dtype=str, default=None)
+    scratch = pexConfig.Field(doc="user scratch directory", dtype=str, default=None)
 
 
 class UserConfig(pexConfig.Config):
