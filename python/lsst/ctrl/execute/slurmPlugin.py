@@ -68,7 +68,7 @@ class SlurmPlugin(Allocator):
 
         # run the sbatch command
         template = Template(self.getLocalScratchDirectory())
-        localScratchDir = template.substitute(USER_NAME=self.getUserName())
+        localScratchDir = template.substitute(USER_SCRATCH=self.getUserScratch())
         if not os.path.exists(localScratchDir):
             os.mkdir(localScratchDir)
         os.chdir(localScratchDir)
@@ -116,7 +116,7 @@ class SlurmPlugin(Allocator):
         allocationConfig = self.loadAllocationConfig(name, "slurm")
 
         template = Template(allocationConfig.platform.scratchDirectory)
-        scratchDir = template.substitute(USER_NAME=self.getUserName())
+        scratchDir = template.substitute(USER_SCRATCH=self.getUserScratch())
         self.defaults["SCRATCH_DIR"] = scratchDir
 
         self.allocationFileName = os.path.join(
