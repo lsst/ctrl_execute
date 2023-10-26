@@ -184,7 +184,8 @@ class SlurmPlugin(Allocator):
         import math
         import socket
 
-        from glideinwms.lib import condorMonitor
+        import htcondor
+        from lsst.ctrl.bps.htcondor import condor_q
 
         verbose = self.isVerbose()
 
@@ -201,34 +202,24 @@ class SlurmPlugin(Allocator):
         tatalGlidein=0
 
         try:
-            schedd=socket.getfqdn()
-            print("glideinsFromJobPressure: Make an instance of CondorQ class")
-            condorq = condorMonitor.CondorQ(schedd)
-            # format_list=[("JobStatus", "i"), ("EnteredCurrentStatus", "i"), ("ServerTime", "i"), ("RemoteHost", "s")]
-            ####  w  format_list=[("JobStatus", "i"), ("Owner", "s"), ("RemoteHost", "s"), ("RequestCpus", "i")]
-            format_list=[("JobStatus", "i"), ("Owner", "s"), ("RequestCpus", "i"), ("JobUniverse", "i"), ("RequestMemory", "i")]
-            # do we ever need :
-            # Ideas : ClusterId , ProcId, User
-            #
-            # full_constraint = "True"
-            #
-            # Idle jobs, vanilla universe, owned by me 
-            #
+            schedd_name=socket.getfqdn()
+            coll=htcondor.Collector()
+            schedd_ad=coll.locate(htcondor.DaemonTypes.Schedd)
+            scheddref=htcondor.Schedd(schedd_ad)
+            projection=["JobStatus", "Owner", "RequestCpus", "JobUniverse", "RequestMemory"]
             full_constraint = '(Owner=="daues") && (JobStatus==1) && (JobUniverse==5)'
-            #
-            # full_constraint = '(Owner=="daues")'
-            # full_constraint = '(Owner=?="mgower")'
-            condorq.load(full_constraint, format_list)
-            condorq_data = condorq.fetchStored()
-            # if len(condorq.fetchStored()) > 0:
+            condorq_data = condor_q(
+                constraint=full_constraint, schedds={schedd_name: scheddref}, projection=projection,
+            )
             if len(condorq_data) > 0:
                 print("glideinsFromJobPressure: Fetched")
-                print(len(condorq_data))
+                condorq_bps=condorq_data[schedd_name]
                 if verbose:
-                    print(condorq_data)
+                    print(len(condorq_bps))
+                    print(condorq_bps)
                 # disassemble the dictionary of dictionaries
-                for jid in list(condorq_data.keys()):
-                    job = condorq_data[jid]
+                for jid in list(condorq_bps.keys()):
+                    job = condorq_bps[jid]
                     ## job is now like {'JobStatus': 1, .., 'RequestMemory': 1, 'RequestCpus': 1, 'JobUniverse': 5, 'Owner': 'daues'}
                     thisCores=job["RequestCpus"]
                     thisMemory=job["RequestMemory"]
@@ -250,9 +241,6 @@ class SlurmPlugin(Allocator):
             else:
                 print("Length Zero")
                 print(len(condorq_data))
-                #     out_condorq_dict[schedd] = condorq
-        except condorMonitor.QueryError:
-            print("QueryError")
         except RuntimeError as e:
             print("RuntimeError")
         except Exception:
