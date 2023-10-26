@@ -172,7 +172,7 @@ class SlurmPlugin(Allocator):
         return outfile
 
     def glideinsFromJobPressure(self):
-        """Calculate the number of glideins needed from job pressure using glideinwms calls
+        """Calculate the number of glideins needed from job pressure
 
         Returns
         -------
@@ -188,13 +188,12 @@ class SlurmPlugin(Allocator):
 
         verbose = self.isVerbose()
 
-        maxNumberOfGlideins=nodes = self.getNodes()
+        maxNumberOfGlideins = self.getNodes()
         coresPerGlidein = self.getCPUs()
         ratioMemCore = self.getMemoryPerCore()
 
         # initialize counters
         totalCores = 0
-        tatalGlidein = 0
 
         try:
             schedd_name = socket.getfqdn()
@@ -223,7 +222,6 @@ class SlurmPlugin(Allocator):
                 # disassemble the dictionary of dictionaries
                 for jid in list(condorq_bps.keys()):
                     job = condorq_bps[jid]
-                    ## job is now like {'JobStatus': 1, .., 'RequestMemory': 1, 'RequestCpus': 1, 'JobUniverse': 5, 'Owner': 'daues'}
                     thisCores = job["RequestCpus"]
                     thisMemory = job["RequestMemory"]
                     totalCores = totalCores + thisCores
@@ -246,8 +244,6 @@ class SlurmPlugin(Allocator):
             else:
                 print("Length Zero")
                 print(len(condorq_data))
-        except RuntimeError as e:
-            print("RuntimeError")
         except Exception:
             print("Exception")
 
@@ -276,9 +272,7 @@ class SlurmPlugin(Allocator):
         print(
             f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}"
         )
-        print(
-            f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}"
-        )
+        print(f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}")
         numberOfGlideinsRed = numberOfGlideins - existingGlideinsIdle
 
         print(
@@ -288,21 +282,13 @@ class SlurmPlugin(Allocator):
         maxIdleGlideins = maxNumberOfGlideins - existingGlideinsRunning
         maxSubmitGlideins = maxIdleGlideins - existingGlideinsIdle
 
-        print(
-            f"glideinsFromJobPressure: maxNumberOfGlideins {maxNumberOfGlideins}"
-        )
+        print(f"glideinsFromJobPressure: maxNumberOfGlideins {maxNumberOfGlideins}")
         print(
             f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}"
         )
-        print(
-            f"glideinsFromJobPressure: maxIdleGlideins {maxIdleGlideins}"
-        )
-        print(
-            f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}"
-        )
-        print(
-            f"glideinsFromJobPressure: maxSubmitGlideins {maxSubmitGlideins}"
-        )
+        print(f"glideinsFromJobPressure: maxIdleGlideins {maxIdleGlideins}")
+        print(f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}")
+        print(f"glideinsFromJobPressure: maxSubmitGlideins {maxSubmitGlideins}")
 
         if numberOfGlideinsRed > maxSubmitGlideins:
             numberOfGlideinsRed = maxSubmitGlideins
