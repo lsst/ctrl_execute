@@ -62,7 +62,11 @@ class AllocatorParser:
         parser = argparse.ArgumentParser(prog=basename)
         parser.add_argument("platform", help="node allocation platform")
         parser.add_argument(
-            "-u", "--auto", action="store_true", dest="auto", help="use automatic detection of jobs to determine glide-ins"
+            "-u",
+            "--auto",
+            action="store_true",
+            dest="auto",
+            help="use automatic detection of jobs to determine glide-ins",
         )
         parser.add_argument(
             "-n",

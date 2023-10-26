@@ -36,7 +36,7 @@ class SlurmPlugin(Allocator):
 
         self.loadSlurm(configName, platformPkgDir)
         verbose = self.isVerbose()
-        auto    = self.isAuto()
+        auto = self.isAuto()
 
         # create the fully-resolved scratch directory string
         scratchDirParam = self.getScratchDirectory()
@@ -171,7 +171,6 @@ class SlurmPlugin(Allocator):
         os.chmod(outfile, 0o755)
         return outfile
 
-
     def glideinsFromJobPressure(self):
         """Calculate the number of glideins needed from job pressure using glideinwms calls
 
@@ -189,31 +188,35 @@ class SlurmPlugin(Allocator):
 
         verbose = self.isVerbose()
 
-        nodes = self.getNodes()
-        cpus = self.getCPUs()
-        # maxNumberOfGlideins=80
-        # coresPerGlidein=16 
-        maxNumberOfGlideins=nodes
-        coresPerGlidein=cpus 
-        ratioMemCore=4096
+        maxNumberOfGlideins=nodes = self.getNodes()
+        coresPerGlidein = self.getCPUs()
+        ratioMemCore = self.getMemoryPerCore()
 
         # initialize counters
-        totalCores=0
-        tatalGlidein=0
+        totalCores = 0
+        tatalGlidein = 0
 
         try:
-            schedd_name=socket.getfqdn()
-            coll=htcondor.Collector()
-            schedd_ad=coll.locate(htcondor.DaemonTypes.Schedd)
-            scheddref=htcondor.Schedd(schedd_ad)
-            projection=["JobStatus", "Owner", "RequestCpus", "JobUniverse", "RequestMemory"]
+            schedd_name = socket.getfqdn()
+            coll = htcondor.Collector()
+            schedd_ad = coll.locate(htcondor.DaemonTypes.Schedd)
+            scheddref = htcondor.Schedd(schedd_ad)
+            projection = [
+                "JobStatus",
+                "Owner",
+                "RequestCpus",
+                "JobUniverse",
+                "RequestMemory",
+            ]
             full_constraint = '(Owner=="daues") && (JobStatus==1) && (JobUniverse==5)'
             condorq_data = condor_q(
-                constraint=full_constraint, schedds={schedd_name: scheddref}, projection=projection,
+                constraint=full_constraint,
+                schedds={schedd_name: scheddref},
+                projection=projection,
             )
             if len(condorq_data) > 0:
                 print("glideinsFromJobPressure: Fetched")
-                condorq_bps=condorq_data[schedd_name]
+                condorq_bps = condorq_data[schedd_name]
                 if verbose:
                     print(len(condorq_bps))
                     print(condorq_bps)
@@ -221,20 +224,22 @@ class SlurmPlugin(Allocator):
                 for jid in list(condorq_bps.keys()):
                     job = condorq_bps[jid]
                     ## job is now like {'JobStatus': 1, .., 'RequestMemory': 1, 'RequestCpus': 1, 'JobUniverse': 5, 'Owner': 'daues'}
-                    thisCores=job["RequestCpus"]
-                    thisMemory=job["RequestMemory"]
-                    totalCores=totalCores+thisCores
+                    thisCores = job["RequestCpus"]
+                    thisMemory = job["RequestMemory"]
+                    totalCores = totalCores + thisCores
                     if verbose:
-                        print(f"glideinsFromJobPressure: The key in the dictionary is  {jid}")
+                        print(
+                            f"glideinsFromJobPressure: The key in the dictionary is  {jid}"
+                        )
                         print(f"\tRequestCpus {thisCores}")
                         print(f"\tCurrent value of totalCores {totalCores}")
-                    thisRatio=thisMemory/ratioMemCore
+                    thisRatio = thisMemory / ratioMemCore
                     if thisRatio > thisCores:
                         if verbose:
                             print("\t\tNeed to Add More:")
                             print(f"\t\tRequestMemory is {thisMemory} ")
                             print(f"\t\tRatio to 4 GB is  {thisRatio} ")
-                        totalCores=totalCores+(thisRatio-thisCores)
+                        totalCores = totalCores + (thisRatio - thisCores)
                         if verbose:
                             print(f"\t\tCurrent value of totalCores {totalCores}")
 
@@ -247,48 +252,62 @@ class SlurmPlugin(Allocator):
             print("Exception")
 
         print(f"glideinsFromJobPressure: The final TotalCores is {totalCores}")
-        numberOfGlideins=math.ceil(totalCores/coresPerGlidein)
-        print(f"glideinsFromJobPressure: Target number of Glideins for Idle Jobs is {numberOfGlideins}")
-
-        #  squeue --noheader --name=glide_daues --states=PD
-        #  squeue --noheader --name=glide_daues --states=R
+        numberOfGlideins = math.ceil(totalCores / coresPerGlidein)
+        print(
+            f"glideinsFromJobPressure: Target # Glideins for Idle Jobs is {numberOfGlideins}"
+        )
 
         # Check Slurm queue Running glideins
         auser = self.getUserName()
         jobname = "".join(["glide_", auser])
-        existingGlideinsRunning=10
+        existingGlideinsRunning = 0
         batcmd = "".join(["squeue --noheader --states=R  --name=", jobname, " | wc -l"])
         print("The squeue command is: %s " % batcmd)
         resultR = subprocess.check_output(batcmd, shell=True)
         existingGlideinsRunning = int(resultR.decode("UTF-8"))
 
         # Check Slurm queue Idle Glideins
-        existingGlideinsIdle=10
+        existingGlideinsIdle = 0
         batcmd = "".join(["squeue --noheader --states=PD --name=", jobname, " | wc -l"])
         print("The squeue command is: %s " % batcmd)
         resultPD = subprocess.check_output(batcmd, shell=True)
         existingGlideinsIdle = int(resultPD.decode("UTF-8"))
 
-        print(f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}")
-        print(f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}")
-        numberOfGlideinsRed=numberOfGlideins-existingGlideinsIdle
+        print(
+            f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}"
+        )
+        print(
+            f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}"
+        )
+        numberOfGlideinsRed = numberOfGlideins - existingGlideinsIdle
 
-        print(f"glideinsFromJobPressure: Target number of Glideins Max to Submit {numberOfGlideinsRed}")
+        print(
+            f"glideinsFromJobPressure: Target # Glideins Max to Submit {numberOfGlideinsRed}"
+        )
 
-        maxIdleGlideins=maxNumberOfGlideins-existingGlideinsRunning
-        maxSubmitGlideins=maxIdleGlideins-existingGlideinsIdle
+        maxIdleGlideins = maxNumberOfGlideins - existingGlideinsRunning
+        maxSubmitGlideins = maxIdleGlideins - existingGlideinsIdle
 
-        print(f"glideinsFromJobPressure: maxNumberOfGlideins {maxNumberOfGlideins}")
-        print(f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}")
-        print(f"glideinsFromJobPressure: maxIdleGlideins {maxIdleGlideins}")
-        print(f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}")
-        print(f"glideinsFromJobPressure: maxSubmitGlideins {maxSubmitGlideins}")
+        print(
+            f"glideinsFromJobPressure: maxNumberOfGlideins {maxNumberOfGlideins}"
+        )
+        print(
+            f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}"
+        )
+        print(
+            f"glideinsFromJobPressure: maxIdleGlideins {maxIdleGlideins}"
+        )
+        print(
+            f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}"
+        )
+        print(
+            f"glideinsFromJobPressure: maxSubmitGlideins {maxSubmitGlideins}"
+        )
 
-     
         if numberOfGlideinsRed > maxSubmitGlideins:
             numberOfGlideinsRed = maxSubmitGlideins
 
-        print(f"glideinsFromJobPressure: The number of Glideins to submit now is  {numberOfGlideinsRed}")
-
+        print(
+            f"glideinsFromJobPressure: The number of Glideins to submit now is  {numberOfGlideinsRed}"
+        )
         return numberOfGlideinsRed
-
