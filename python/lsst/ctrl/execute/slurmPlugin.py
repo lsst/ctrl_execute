@@ -191,6 +191,7 @@ class SlurmPlugin(Allocator):
         maxNumberOfGlideins = self.getNodes()
         coresPerGlidein = self.getCPUs()
         ratioMemCore = self.getMemoryPerCore()
+        auser = self.getUserName()
 
         # initialize counters
         totalCores = 0
@@ -207,7 +208,12 @@ class SlurmPlugin(Allocator):
                 "JobUniverse",
                 "RequestMemory",
             ]
-            full_constraint = '(Owner=="daues") && (JobStatus==1) && (JobUniverse==5)'
+            owner = "".join(["(Owner==\"", auser, "\") "])
+            jstat = "&& (JobStatus==1) "
+            juniv = "&& (JobUniverse==5)"
+            full_constraint = "".join([owner, jstat, juniv])
+            if verbose:
+                print(f"full_constraint {full_constraint}")
             condorq_data = condor_q(
                 constraint=full_constraint,
                 schedds={schedd_name: scheddref},
@@ -254,7 +260,6 @@ class SlurmPlugin(Allocator):
         )
 
         # Check Slurm queue Running glideins
-        auser = self.getUserName()
         jobname = "".join(["glide_", auser])
         existingGlideinsRunning = 0
         batcmd = "".join(["squeue --noheader --states=R  --name=", jobname, " | wc -l"])
