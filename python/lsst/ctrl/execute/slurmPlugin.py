@@ -208,7 +208,7 @@ class SlurmPlugin(Allocator):
                 "JobUniverse",
                 "RequestMemory",
             ]
-            owner = "".join(["(Owner==\"", auser, "\") "])
+            owner = "".join(['(Owner=="', auser, '") '])
             jstat = "&& (JobStatus==1) "
             juniv = "&& (JobUniverse==5)"
             full_constraint = "".join([owner, jstat, juniv])
