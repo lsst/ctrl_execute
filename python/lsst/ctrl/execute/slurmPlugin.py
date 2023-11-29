@@ -205,7 +205,7 @@ class SlurmPlugin(Allocator):
             schedd_ad = coll.locate(htcondor.DaemonTypes.Schedd)
             scheddref = htcondor.Schedd(schedd_ad)
             # projection contains the job classads to be returned.
-            # These include the cpu and memory profile of each job, 
+            # These include the cpu and memory profile of each job,
             # in the form of RequestCpus and RequestMemory
             projection = [
                 "JobStatus",
@@ -214,10 +214,10 @@ class SlurmPlugin(Allocator):
                 "JobUniverse",
                 "RequestMemory",
             ]
-            owner = f"(Owner==\"{auser}\") "
+            owner = f'(Owner=="{auser}") '
             jstat = "&& (JobStatus==1) "
             juniv = "&& (JobUniverse==5)"
-            # The constraint determines that the jobs to be returned belong to 
+            # The constraint determines that the jobs to be returned belong to
             # the current user (Owner), are vanilla universe jobs, and are Idle.
             full_constraint = f"{owner}{jstat}{juniv}"
             if verbose:
