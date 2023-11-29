@@ -218,7 +218,7 @@ class SlurmPlugin(Allocator):
             jstat = "&& (JobStatus==1) "
             juniv = "&& (JobUniverse==5)"
             # The constraint determines that the jobs to be returned belong to
-            # the current user (Owner), are vanilla universe jobs, and are Idle.
+            # the current user (Owner) and are Idle vanilla universe jobs.
             full_constraint = f"{owner}{jstat}{juniv}"
             if verbose:
                 print(f"full_constraint {full_constraint}")
