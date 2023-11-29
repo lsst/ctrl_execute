@@ -62,7 +62,6 @@ class AllocatorParser:
         parser = argparse.ArgumentParser(prog=basename)
         parser.add_argument("platform", help="node allocation platform")
         parser.add_argument(
-            "-u",
             "--auto",
             action="store_true",
             dest="auto",

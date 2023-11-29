@@ -98,7 +98,10 @@ class SlurmPlugin(Allocator):
 
             batcmd = "".join(["squeue --noheader --name=", jobname, " | wc -l"])
             print("The squeue command is: %s " % batcmd)
-            result = subprocess.check_output(batcmd, shell=True)
+            try:
+                result = subprocess.check_output(batcmd, shell=True)
+            except subprocess.CalledProcessError as e:
+                print(e.output)
             strResult = result.decode("UTF-8")
 
             print("Detected this number of preexisting glidein jobs: %s " % strResult)
@@ -201,6 +204,9 @@ class SlurmPlugin(Allocator):
             coll = htcondor.Collector()
             schedd_ad = coll.locate(htcondor.DaemonTypes.Schedd)
             scheddref = htcondor.Schedd(schedd_ad)
+            # projection contains the job classads to be returned.
+            # These include the cpu and memory profile of each job, 
+            # in the form of RequestCpus and RequestMemory
             projection = [
                 "JobStatus",
                 "Owner",
@@ -208,10 +214,12 @@ class SlurmPlugin(Allocator):
                 "JobUniverse",
                 "RequestMemory",
             ]
-            owner = "".join(['(Owner=="', auser, '") '])
+            owner = f"(Owner==\"{auser}\") "
             jstat = "&& (JobStatus==1) "
             juniv = "&& (JobUniverse==5)"
-            full_constraint = "".join([owner, jstat, juniv])
+            # The constraint determines that the jobs to be returned belong to 
+            # the current user (Owner), are vanilla universe jobs, and are Idle.
+            full_constraint = f"{owner}{jstat}{juniv}"
             if verbose:
                 print(f"full_constraint {full_constraint}")
             condorq_data = condor_q(
@@ -242,7 +250,7 @@ class SlurmPlugin(Allocator):
                         if verbose:
                             print("\t\tNeed to Add More:")
                             print(f"\t\tRequestMemory is {thisMemory} ")
-                            print(f"\t\tRatio to 4 GB is  {thisRatio} ")
+                            print(f"\t\tRatio to {ratioMemCore} MB is {thisRatio} ")
                         totalCores = totalCores + (thisRatio - thisCores)
                         if verbose:
                             print(f"\t\tCurrent value of totalCores {totalCores}")
@@ -250,8 +258,8 @@ class SlurmPlugin(Allocator):
             else:
                 print("Length Zero")
                 print(len(condorq_data))
-        except Exception:
-            print("Exception")
+        except Exception as exc:
+            raise type(exc)("Problem querying condor schedd for jobs") from None
 
         print(f"glideinsFromJobPressure: The final TotalCores is {totalCores}")
         numberOfGlideins = math.ceil(totalCores / coresPerGlidein)
@@ -260,18 +268,24 @@ class SlurmPlugin(Allocator):
         )
 
         # Check Slurm queue Running glideins
-        jobname = "".join(["glide_", auser])
+        jobname = f"glide_{auser}"
         existingGlideinsRunning = 0
-        batcmd = "".join(["squeue --noheader --states=R  --name=", jobname, " | wc -l"])
+        batcmd = f"squeue --noheader --states=R  --name={jobname} | wc -l"
         print("The squeue command is: %s " % batcmd)
-        resultR = subprocess.check_output(batcmd, shell=True)
+        try:
+            resultR = subprocess.check_output(batcmd, shell=True)
+        except subprocess.CalledProcessError as e:
+            print(e.output)
         existingGlideinsRunning = int(resultR.decode("UTF-8"))
 
         # Check Slurm queue Idle Glideins
         existingGlideinsIdle = 0
-        batcmd = "".join(["squeue --noheader --states=PD --name=", jobname, " | wc -l"])
+        batcmd = f"squeue --noheader --states=PD --name={jobname} | wc -l"
         print("The squeue command is: %s " % batcmd)
-        resultPD = subprocess.check_output(batcmd, shell=True)
+        try:
+            resultPD = subprocess.check_output(batcmd, shell=True)
+        except subprocess.CalledProcessError as e:
+            print(e.output)
         existingGlideinsIdle = int(resultPD.decode("UTF-8"))
 
         print(
