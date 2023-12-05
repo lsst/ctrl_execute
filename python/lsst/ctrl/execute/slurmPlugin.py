@@ -140,7 +140,7 @@ class SlurmPlugin(Allocator):
         if self.opts.packnodes is None:
             self.defaults["PACK_BLOCK"] = "#"
         else:
-            self.defaults["PACK_BLOCK"] = "Rank = TotalCpus - Cpus"          
+            self.defaults["PACK_BLOCK"] = "Rank = TotalCpus - Cpus"
 
         # handle dynamic slot block template:
         # 1) if it isn't specified, just put a comment in it's place
