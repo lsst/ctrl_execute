@@ -153,7 +153,7 @@ class AllocatorParser:
             "--pack",
             action="store_true",
             dest="packnodes",
-            help="encouraging nodes to pack jobs rather than spread",
+            help="encourage nodes to pack jobs rather than spread",
         )
         parser.add_argument(
             "-v", "--verbose", action="store_true", dest="verbose", help="verbose"
