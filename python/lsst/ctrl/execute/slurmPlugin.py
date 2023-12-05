@@ -137,6 +137,15 @@ class SlurmPlugin(Allocator):
             self.allocationFileName
         )
 
+        # For partitionable slots the classad 'Cpus' shows how many cpus
+        # remain to be allocated. Thus for a slot running jobs the value
+        # of Rank of TotalCpus - Cpus will increase with the load.
+        # Because higher Rank is preferred, loaded slots are favored.
+        if self.opts.packnodes is None:
+            self.defaults["PACK_BLOCK"] = "#"
+        else:
+            self.defaults["PACK_BLOCK"] = "Rank = TotalCpus - Cpus"
+
         # handle dynamic slot block template:
         # 1) if it isn't specified, just put a comment in it's place
         # 2) if it's specified, but without a filename, use the default
