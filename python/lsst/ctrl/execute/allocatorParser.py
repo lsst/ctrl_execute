@@ -149,6 +149,13 @@ class AllocatorParser:
             help="glide-in inactivity shutdown time in seconds",
         )
         parser.add_argument(
+            "-p",
+            "--pack",
+            action="store_true",
+            dest="packnodes",
+            help="encouraging nodes to pack jobs rather than spread",
+        )
+        parser.add_argument(
             "-v", "--verbose", action="store_true", dest="verbose", help="verbose"
         )
         parser.add_argument(
