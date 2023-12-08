@@ -125,9 +125,7 @@ class SlurmPlugin(Allocator):
             self.defaults["RESERVATION"] = ""
 
         if self.opts.qos is not None:
-            self.defaults["QOS"] = (
-                "#SBATCH --qos %s" % self.opts.qos
-            )
+            self.defaults["QOS"] = "#SBATCH --qos %s" % self.opts.qos
         else:
             self.defaults["QOS"] = ""
 
