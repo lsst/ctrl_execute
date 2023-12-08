@@ -100,9 +100,9 @@ class AllocatorParser:
             "-s",
             "--qos",
             action="store",
-            default="normal",
+            default=None,
             dest="qos",
-            help="Slurm qos or glidein job",
+            help="Slurm qos for glidein job",
             type=str,
         )
         parser.add_argument(

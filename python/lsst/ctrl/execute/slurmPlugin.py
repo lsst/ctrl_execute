@@ -119,10 +119,17 @@ class SlurmPlugin(Allocator):
     def loadSlurm(self, name, platformPkgDir):
         if self.opts.reservation is not None:
             self.defaults["RESERVATION"] = (
-                "#SBATCH --reservation=%s" % self.opts.reservation
+                "#SBATCH --reservation %s" % self.opts.reservation
             )
         else:
             self.defaults["RESERVATION"] = ""
+
+        if self.opts.qos is not None:
+            self.defaults["QOS"] = (
+                "#SBATCH --qos %s" % self.opts.qos
+            )
+        else:
+            self.defaults["QOS"] = ""
 
         allocationConfig = self.loadAllocationConfig(name, "slurm")
 
