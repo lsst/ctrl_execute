@@ -99,7 +99,6 @@ class Allocator:
         self.commandLineDefaults["CPUS"] = self.opts.cpus
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
-        self.commandLineDefaults["QOS"] = self.opts.qos
         self.commandLineDefaults["MEMPERCORE"] = 4096
         self.commandLineDefaults["QUEUE"] = self.opts.queue
         self.load()
@@ -325,6 +324,12 @@ class Allocator:
         @return the value of MemoryPerCore
         """
         return self.getParameter("MEMPERCORE")
+
+    def getQOS(self):
+        """Accessor for QOS
+        @return the value of QOS
+        """
+        return self.getParameter("QOS")
 
     def getCPUs(self):
         """Accessor for CPUS
