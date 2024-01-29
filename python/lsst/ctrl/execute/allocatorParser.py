@@ -81,11 +81,11 @@ class AllocatorParser:
             "-c",
             "--cpus",
             action="store",
-            default=None,
+            default=16,
             dest="cpus",
             help="cores / cpus per glidein",
             type=int,
-            required=True,
+            required=False,
         )
         parser.add_argument(
             "-a",
