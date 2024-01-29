@@ -338,10 +338,10 @@ class Allocator:
         return self.getParameter("CPUS")
 
     def getAutoCPUs(self):
-        """ Size of standard glideins for allocateNodes auto
+        """Size of standard glideins for allocateNodes auto
         @return the value of autoCPUs
         """
-        autoCPUs = 16;
+        autoCPUs = 16
         return autoCPUs
 
     def getWallClock(self):

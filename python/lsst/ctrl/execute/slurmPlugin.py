@@ -213,7 +213,6 @@ class SlurmPlugin(Allocator):
 
         # initialize counters
         totalCores = 0
-
      
         try:
             schedd_name = socket.getfqdn()
@@ -222,11 +221,11 @@ class SlurmPlugin(Allocator):
             scheddref = htcondor.Schedd(schedd_ad)
 
             ##  Query for jobs that have (bps_run isnt Undefined)
-            ##                          (bps_job_label isnt Undefined) 
-            ##  and amongst those identify Large jobs 
-            ##                          thisCores > 16:
-            ##                          thisMemory > 16*4096:
-            ## 
+            ##                          (bps_job_label isnt Undefined)
+            ##  and amongst those identify Large jobs
+            ##                          thisCores > 16
+            ##                          thisMemory > 16*4096
+            ##
             # projection contains the job classads to be returned.
             # These include the cpu and memory profile of each job,
             # in the form of RequestCpus and RequestMemory
@@ -271,12 +270,12 @@ class SlurmPlugin(Allocator):
                 condorq_bps = condorq_data[schedd_name]
                 for jid in list(condorq_bps.keys()):
                     job = condorq_bps[jid]
-                    thisRun  = job["bps_run"]
+                    thisRun = job["bps_run"]
                     thisLabel = job["bps_job_label"]
                     thisCores = job["RequestCpus"]
                     thisMemory = job["RequestMemory"]
-                    if thisCores > autoCPUs or thisMemory > autoCPUs*memoryPerCore:
-                        condorq_bps_large[jid]=job
+                    if thisCores > autoCPUs or thisMemory > autoCPUs * memoryPerCore:
+                        condorq_bps_large[jid] = job
 
                 #
                 # Collect a list of the labels
@@ -308,7 +307,7 @@ class SlurmPlugin(Allocator):
                     empty_list = []
                     label_dict[job_label] = empty_list
 
-                # Loop over over the Large jobs and categorize 
+                # Loop over the Large jobs and categorize
                 for jid in list(condorq_bps_large.keys()):
                     ajob = condorq_bps_large[jid]
                     this_label = ajob["bps_job_label"]
@@ -323,19 +322,17 @@ class SlurmPlugin(Allocator):
                     numberOfGlideinsRed = 0
                     numberOfGlideins = 0
                     alist = label_dict[job_label]
-                    thisMemory = alist[0]['RequestMemory']
-                    useCores = alist[0]['RequestCpus']
+                    thisMemory = alist[0]["RequestMemory"]
+                    useCores = alist[0]["RequestCpus"]
                     if useCores < autoCPUs:
                         useCores = autoCPUs
                     hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
                     shash = hash[:6]
                     numberOfGlideins = len(alist)
                     jobname = f"{auser}_{shash}"
-                    print(
-                         f"{job_label} {jobname} target {numberOfGlideins}"
-                    )
+                    print(f"{job_label} {jobname} target {numberOfGlideins}")
 
-                    # Do not submit squeue commands rapidly 
+                    # Do not submit squeue commands rapidly
                     time.sleep(2)
                     # Check Slurm queue Idle Glideins
                     existingGlideinsIdle = 0
@@ -356,17 +353,17 @@ class SlurmPlugin(Allocator):
                         print(f"{job_label} {jobname} reduced {numberOfGlideinsRed}")
 
                     cpuopt = f"--cpus-per-task {useCores}"
-                    memopt = f"--mem {thisMemory}" 
-                    jobopt = f"-J {jobname}" 
+                    memopt = f"--mem {thisMemory}"
+                    jobopt = f"-J {jobname}"
                     cmd = f"sbatch {cpuopt} {memopt} {jobopt} {generatedSlurmFile}"
                     if verbose:
-                         print(cmd)
+                        print(cmd)
                     for glide in range(0, numberOfGlideinsRed):
-                         print("Submitting Large glidein %s " % glide)
-                         exitCode = self.runCommand(cmd, verbose)
-                         if exitCode != 0:
-                             print("error running %s" % cmd)
-                             sys.exit(exitCode)
+                        print("Submitting Large glidein %s " % glide)
+                        exitCode = self.runCommand(cmd, verbose)
+                        if exitCode != 0:
+                            print("error running %s" % cmd)
+                            sys.exit(exitCode)
 
         except Exception as exc:
             raise type(exc)("Problem querying condor schedd for jobs") from None
@@ -439,7 +436,7 @@ class SlurmPlugin(Allocator):
                     job = condorq_bps[jid]
                     thisCores = job["RequestCpus"]
                     thisMemory = job["RequestMemory"]
-                    if thisCores > autoCPUs or thisMemory > autoCPUs*memoryPerCore:
+                    if thisCores > autoCPUs or thisMemory > autoCPUs * memoryPerCore:
                         if verbose:
                             print("Skipping large job")
                             print(jid)
