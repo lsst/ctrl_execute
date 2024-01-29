@@ -197,7 +197,6 @@ class SlurmPlugin(Allocator):
         """
 
         import hashlib
-        import math
         import socket
         import time
 
@@ -206,25 +205,22 @@ class SlurmPlugin(Allocator):
 
         verbose = self.isVerbose()
 
-        maxNumberOfGlideins = self.getNodes()
         autoCPUs = self.getAutoCPUs()
         memoryPerCore = self.getMemoryPerCore()
         auser = self.getUserName()
 
-        # initialize counters
-        totalCores = 0
         try:
             schedd_name = socket.getfqdn()
             coll = htcondor.Collector()
             schedd_ad = coll.locate(htcondor.DaemonTypes.Schedd)
             scheddref = htcondor.Schedd(schedd_ad)
 
-            ##  Query for jobs that have (bps_run isnt Undefined)
-            ##                          (bps_job_label isnt Undefined)
-            ##  and amongst those identify Large jobs
-            ##                          thisCores > 16
-            ##                          thisMemory > 16*4096
-            ##
+            # Query for jobs that have (bps_run isnt Undefined)
+            #                          (bps_job_label isnt Undefined)
+            # and amongst those identify Large jobs
+            #                          thisCores > 16
+            #                          thisMemory > 16*4096
+            #
             # projection contains the job classads to be returned.
             # These include the cpu and memory profile of each job,
             # in the form of RequestCpus and RequestMemory
@@ -257,7 +253,7 @@ class SlurmPlugin(Allocator):
             # Dictionaries of results need to be disassembled
 
             if len(condorq_data) == 0:
-                print(f"No Large BPS Jobs.")
+                print("No Large BPS Jobs.")
 
             if len(condorq_data) > 0:
                 #
@@ -269,8 +265,6 @@ class SlurmPlugin(Allocator):
                 condorq_bps = condorq_data[schedd_name]
                 for jid in list(condorq_bps.keys()):
                     job = condorq_bps[jid]
-                    thisRun = job["bps_run"]
-                    thisLabel = job["bps_job_label"]
                     thisCores = job["RequestCpus"]
                     thisMemory = job["RequestMemory"]
                     if thisCores > autoCPUs or thisMemory > autoCPUs * memoryPerCore:
@@ -316,7 +310,6 @@ class SlurmPlugin(Allocator):
                 for job_label in unique_labels:
                     if verbose:
                         print(f"\n{job_label}")
-                    existingGlideinsRunning = 0
                     existingGlideinsIdle = 0
                     numberOfGlideinsRed = 0
                     numberOfGlideins = 0
@@ -334,7 +327,6 @@ class SlurmPlugin(Allocator):
                     # Do not submit squeue commands rapidly
                     time.sleep(2)
                     # Check Slurm queue Idle Glideins
-                    existingGlideinsIdle = 0
                     batcmd = f"squeue --noheader --states=PD --name={jobname} | wc -l"
                     if verbose:
                         print("The squeue command is: %s " % batcmd)
@@ -416,7 +408,7 @@ class SlurmPlugin(Allocator):
             # the current user (Owner) and are Idle vanilla universe jobs.
             full_constraint = f"{owner}{jstat}{juniv}"
             if verbose:
-                print(f"\nQuerying condor queue for standard jobs")
+                print("\nQuerying condor queue for standard jobs")
                 print(f"full_constraint {full_constraint}")
             condorq_data = condor_q(
                 constraint=full_constraint,
