@@ -213,7 +213,6 @@ class SlurmPlugin(Allocator):
 
         # initialize counters
         totalCores = 0
-     
         try:
             schedd_name = socket.getfqdn()
             coll = htcondor.Collector()
