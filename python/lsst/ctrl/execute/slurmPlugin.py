@@ -100,7 +100,7 @@ class SlurmPlugin(Allocator):
             nodes = self.getNodes()
             # In this case 'nodes' is the Target.
 
-            # Limit the number of cores to be <= 8000 which 500 16-core glideins
+            # Limit number of cores to be <= 8000 which 500 16-core glideins
             # allowed auto glideins is 500
             allowedAutoGlideins = self.getAllowedAutoGlideins()
             # auto glidein size is 16
@@ -368,7 +368,7 @@ class SlurmPlugin(Allocator):
             print(f"maxNumberOfGlideins {maxNumberOfGlideins}")
             print(f"maxAllowedNumberOfGlideins {maxAllowedNumberOfGlideins}")
         # The number of cores for the small glideins is capped at 8000
-        # This corresponds to maxAllowedNumberOfGlideins = 500 16-core glideins
+        # Corresponds to maxAllowedNumberOfGlideins = 500 16-core glideins
         if maxNumberOfGlideins > maxAllowedNumberOfGlideins:
             maxNumberOfGlideins = maxAllowedNumberOfGlideins
             print("Reducing Small Glidein limit due to threshold.")
