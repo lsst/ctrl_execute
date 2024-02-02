@@ -109,12 +109,12 @@ class SlurmPlugin(Allocator):
             coreLimit = allowedAutoGlideins * autoSize
             if targetedCores > coreLimit:
                 # Reduce number of nodes because of threshold
-                nodes = int( coreLimit / cpus )
+                nodes = int(coreLimit / cpus)
                 print("Reducing number of glideins because of core limit threshold")
                 print(f"coreLimit {coreLimit}")
                 print(f"glidein size {cpus}")
                 print(f"New number of glideins {nodes}")
-           
+
             print("Targeting %s glidein(s) for the computing pool/set." % nodes)
             batcmd = "".join(["squeue --noheader --name=", jobname, " | wc -l"])
             print("The squeue command is: %s " % batcmd)
@@ -209,8 +209,7 @@ class SlurmPlugin(Allocator):
         return outfile
 
     def largeGlideinsFromJobPressure(self, generatedSlurmFile):
-        """Determine and submit the large glideins needed from job pressure
-        """
+        """Determine and submit the large glideins needed from job pressure"""
 
         verbose = self.isVerbose()
         autoCPUs = self.getAutoCPUs()
@@ -360,8 +359,7 @@ class SlurmPlugin(Allocator):
         return
 
     def smallGlideinsFromJobPressure(self, generatedSlurmFile):
-        """Determine and submit the small glideins needed from job pressure
-        """
+        """Determine and submit the small glideins needed from job pressure"""
 
         verbose = self.isVerbose()
         maxNumberOfGlideins = self.getNodes()
@@ -430,9 +428,7 @@ class SlurmPlugin(Allocator):
                     thisMemory = job["RequestMemory"]
                     totalCores = totalCores + thisCores
                     if verbose:
-                        print(
-                            f"smallGlideins: The key in the dictionary is  {jid}"
-                        )
+                        print(f"smallGlideins: The key in the dictionary is {jid}")
                         print(f"\tRequestCpus {thisCores}")
                         print(f"\tCurrent value of totalCores {totalCores}")
                     thisRatio = thisMemory / memoryPerCore
@@ -456,9 +452,7 @@ class SlurmPlugin(Allocator):
         # The number of Glideins needed to service the detected Idle jobs
         # is "numberOfGlideins"
         numberOfGlideins = math.ceil(totalCores / autoCPUs)
-        print(
-            f"smallGlideins: Number for detected jobs is {numberOfGlideins}"
-        )
+        print(f"smallGlideins: Number for detected jobs is {numberOfGlideins}")
 
         # Check Slurm queue Running glideins
         jobname = f"glide_{auser}"
@@ -481,20 +475,16 @@ class SlurmPlugin(Allocator):
             print(e.output)
         existingGlideinsIdle = int(resultPD.decode("UTF-8"))
 
-        print(
-            f"smallGlideins: existingGlideinsRunning {existingGlideinsRunning}"
-        )
+        print(f"smallGlideins: existingGlideinsRunning {existingGlideinsRunning}")
         print(f"smallGlideins: existingGlideinsIdle {existingGlideinsIdle}")
 
-        # The number of Glideins that we need to submit to service the detected 
+        # The number of Glideins needed to service the detected
         # Idle jobs is "numberOfGlideins" less the existing Idle glideins
         numberOfGlideinsReduced = numberOfGlideins - existingGlideinsIdle
-        print(
-            f"smallGlideins: Target Number to submit {numberOfGlideinsReduced}"
-        )
+        print(f"smallGlideins: Target Number to submit {numberOfGlideinsReduced}")
 
-        # The maximum number of Glideins that we can submit with 
-        # the imposed threshold (maxNumberOfGlideins) 
+        # The maximum number of Glideins that we can submit with
+        # the imposed threshold (maxNumberOfGlideins)
         # is maxSubmitGlideins
         existingGlideins = existingGlideinsRunning + existingGlideinsIdle
         maxSubmitGlideins = maxNumberOfGlideins - existingGlideins
