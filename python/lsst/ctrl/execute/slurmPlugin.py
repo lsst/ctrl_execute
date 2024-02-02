@@ -29,12 +29,12 @@ import socket
 import subprocess
 import sys
 import time
-
 from string import Template
 
 import htcondor
 from lsst.ctrl.bps.htcondor import condor_q
 from lsst.ctrl.execute.allocator import Allocator
+
 
 class SlurmPlugin(Allocator):
     def submit(self, platform, platformPkgDir):
