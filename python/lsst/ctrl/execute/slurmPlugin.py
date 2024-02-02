@@ -22,13 +22,19 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import hashlib
+import math
 import os
+import socket
 import subprocess
 import sys
+import time
+
 from string import Template
 
+import htcondor
+from lsst.ctrl.bps.htcondor import condor_q
 from lsst.ctrl.execute.allocator import Allocator
-
 
 class SlurmPlugin(Allocator):
     def submit(self, platform, platformPkgDir):
@@ -89,11 +95,26 @@ class SlurmPlugin(Allocator):
 
         if auto:
             self.largeGlideinsFromJobPressure(generatedSlurmFile)
-            numberToAdd = self.glideinsFromJobPressure()
-            print("The number of glidein jobs to submit now is %s" % numberToAdd)
+            self.smallGlideinsFromJobPressure(generatedSlurmFile)
         else:
             nodes = self.getNodes()
             # In this case 'nodes' is the Target.
+
+            # Limit the number of cores to be <= 8000 which 500 16-core glideins
+            # allowed auto glideins is 500
+            allowedAutoGlideins = self.getAllowedAutoGlideins()
+            # auto glidein size is 16
+            autoSize = self.getAutoCPUs()
+            targetedCores = nodes * cpus
+            coreLimit = allowedAutoGlideins * autoSize
+            if targetedCores > coreLimit:
+                # Reduce number of nodes because of threshold
+                nodes = int( coreLimit / cpus )
+                print("Reducing number of glideins because of core limit threshold")
+                print(f"coreLimit {coreLimit}")
+                print(f"glidein size {cpus}")
+                print(f"New number of glideins {nodes}")
+           
             print("Targeting %s glidein(s) for the computing pool/set." % nodes)
             batcmd = "".join(["squeue --noheader --name=", jobname, " | wc -l"])
             print("The squeue command is: %s " % batcmd)
@@ -108,12 +129,12 @@ class SlurmPlugin(Allocator):
             numberToAdd = nodes - int(strResult)
             print("The number of glidein jobs to submit now is %s" % numberToAdd)
 
-        for glide in range(0, numberToAdd):
-            print("Submitting glidein %s " % glide)
-            exitCode = self.runCommand(cmd, verbose)
-            if exitCode != 0:
-                print("error running %s" % cmd)
-                sys.exit(exitCode)
+            for glide in range(0, numberToAdd):
+                print("Submitting glidein %s " % glide)
+                exitCode = self.runCommand(cmd, verbose)
+                if exitCode != 0:
+                    print("error running %s" % cmd)
+                    sys.exit(exitCode)
 
     def loadSlurm(self, name, platformPkgDir):
         if self.opts.reservation is not None:
@@ -188,25 +209,13 @@ class SlurmPlugin(Allocator):
         return outfile
 
     def largeGlideinsFromJobPressure(self, generatedSlurmFile):
-        """Calculate the number of glideins needed from job pressure
-
-        Returns
-        -------
-        number : `str`
-            The number of glideins
+        """Determine and submit the large glideins needed from job pressure
         """
 
-        import hashlib
-        import socket
-        import time
-
-        import htcondor
-        from lsst.ctrl.bps.htcondor import condor_q
-
         verbose = self.isVerbose()
-
         autoCPUs = self.getAutoCPUs()
         memoryPerCore = self.getMemoryPerCore()
+        memoryLimit = autoCPUs * memoryPerCore
         auser = self.getUserName()
 
         try:
@@ -234,13 +243,18 @@ class SlurmPlugin(Allocator):
                 "RequestMemory",
             ]
             owner = f'(Owner=="{auser}") '
-            jstat = "&& (JobStatus==1) "
+            # query for idle jobs
+            jstat = f"&& (JobStatus=={htcondor.JobStatus.IDLE}) "
             bps1 = "&& (bps_run isnt Undefined) "
             bps2 = "&& (bps_job_label isnt Undefined) "
-            juniv = "&& (JobUniverse==5)"
+            # query for vanilla universe
+            # JobUniverse constants are in htcondor C++
+            # UNIVERSE = { 1: "Standard", ..., 5: "Vanilla", ... }
+            juniv = "&& (JobUniverse==5) "
+            large = f"&& (RequestMemory>{memoryLimit} || RequestCpus>{autoCPUs})"
             # The constraint determines that the jobs to be returned belong to
             # the current user (Owner) and are Idle vanilla universe jobs.
-            full_constraint = f"{owner}{jstat}{bps1}{bps2}{juniv}"
+            full_constraint = f"{owner}{jstat}{bps1}{bps2}{juniv}{large}"
             if verbose:
                 print("Find Large BPS Jobs:")
                 print(f"full_constraint {full_constraint}")
@@ -250,29 +264,13 @@ class SlurmPlugin(Allocator):
                 projection=projection,
             )
 
-            # Dictionaries of results need to be disassembled
-
             if len(condorq_data) == 0:
-                print("No Large BPS Jobs.")
+                print("Auto: No Large BPS Jobs.")
+                return
 
             if len(condorq_data) > 0:
-                #
-                # Gather the Large jobs
-                #
-                condorq_bps_large = {}
-                if verbose:
-                    print("Large jobs exist, have been queried/fetched.")
-                condorq_bps = condorq_data[schedd_name]
-                for jid in list(condorq_bps.keys()):
-                    job = condorq_bps[jid]
-                    thisCores = job["RequestCpus"]
-                    thisMemory = job["RequestMemory"]
-                    if thisCores > autoCPUs or thisMemory > autoCPUs * memoryPerCore:
-                        condorq_bps_large[jid] = job
-
-                #
                 # Collect a list of the labels
-                #
+                condorq_bps_large = condorq_data[schedd_name]
                 job_labels = []
                 if verbose:
                     print("Loop over list of Large Jobs")
@@ -311,7 +309,7 @@ class SlurmPlugin(Allocator):
                     if verbose:
                         print(f"\n{job_label}")
                     existingGlideinsIdle = 0
-                    numberOfGlideinsRed = 0
+                    numberOfGlideinsReduced = 0
                     numberOfGlideins = 0
                     alist = label_dict[job_label]
                     thisMemory = alist[0]["RequestMemory"]
@@ -339,9 +337,9 @@ class SlurmPlugin(Allocator):
                         print(f"existingGlideinsIdle {jobname}")
                         print(existingGlideinsIdle)
 
-                    numberOfGlideinsRed = numberOfGlideins - existingGlideinsIdle
+                    numberOfGlideinsReduced = numberOfGlideins - existingGlideinsIdle
                     if verbose:
-                        print(f"{job_label} {jobname} reduced {numberOfGlideinsRed}")
+                        print(f"{job_label} reduced {numberOfGlideinsReduced}")
 
                     cpuopt = f"--cpus-per-task {useCores}"
                     memopt = f"--mem {thisMemory}"
@@ -349,7 +347,7 @@ class SlurmPlugin(Allocator):
                     cmd = f"sbatch {cpuopt} {memopt} {jobopt} {generatedSlurmFile}"
                     if verbose:
                         print(cmd)
-                    for glide in range(0, numberOfGlideinsRed):
+                    for glide in range(0, numberOfGlideinsReduced):
                         print("Submitting Large glidein %s " % glide)
                         exitCode = self.runCommand(cmd, verbose)
                         if exitCode != 0:
@@ -361,26 +359,24 @@ class SlurmPlugin(Allocator):
 
         return
 
-    def glideinsFromJobPressure(self):
-        """Calculate the number of glideins needed from job pressure
-
-        Returns
-        -------
-        number : `str`
-            The number of glideins
+    def smallGlideinsFromJobPressure(self, generatedSlurmFile):
+        """Determine and submit the small glideins needed from job pressure
         """
 
-        import math
-        import socket
-
-        import htcondor
-        from lsst.ctrl.bps.htcondor import condor_q
-
         verbose = self.isVerbose()
-
         maxNumberOfGlideins = self.getNodes()
+        maxAllowedNumberOfGlideins = self.getAllowedAutoGlideins()
+        if verbose:
+            print(f"maxNumberOfGlideins {maxNumberOfGlideins}")
+            print(f"maxAllowedNumberOfGlideins {maxAllowedNumberOfGlideins}")
+        # The number of cores for the small glideins is capped at 8000
+        # This corresponds to maxAllowedNumberOfGlideins = 500 16-core glideins
+        if maxNumberOfGlideins > maxAllowedNumberOfGlideins:
+            maxNumberOfGlideins = maxAllowedNumberOfGlideins
+            print("Reducing Small Glidein limit due to threshold.")
         autoCPUs = self.getAutoCPUs()
         memoryPerCore = self.getMemoryPerCore()
+        memoryLimit = autoCPUs * memoryPerCore
         auser = self.getUserName()
 
         # initialize counters
@@ -402,11 +398,16 @@ class SlurmPlugin(Allocator):
                 "RequestMemory",
             ]
             owner = f'(Owner=="{auser}") '
-            jstat = "&& (JobStatus==1) "
+            # query for idle jobs
+            jstat = f"&& (JobStatus=={htcondor.JobStatus.IDLE}) "
+            # query for vanilla universe
+            # JobUniverse constants are in htcondor C++
+            # UNIVERSE = { 1: "Standard", ..., 5: "Vanilla", ... }
             juniv = "&& (JobUniverse==5)"
+            small = f"&& (RequestMemory<={memoryLimit} && RequestCpus<={autoCPUs})"
             # The constraint determines that the jobs to be returned belong to
             # the current user (Owner) and are Idle vanilla universe jobs.
-            full_constraint = f"{owner}{jstat}{juniv}"
+            full_constraint = f"{owner}{jstat}{juniv}{small}"
             if verbose:
                 print("\nQuerying condor queue for standard jobs")
                 print(f"full_constraint {full_constraint}")
@@ -416,7 +417,7 @@ class SlurmPlugin(Allocator):
                 projection=projection,
             )
             if len(condorq_data) > 0:
-                print("glideinsFromJobPressure: Fetched")
+                print("smallGlideins: Fetched")
                 condorq_bps = condorq_data[schedd_name]
                 if verbose:
                     print(len(condorq_bps))
@@ -427,15 +428,10 @@ class SlurmPlugin(Allocator):
                     job = condorq_bps[jid]
                     thisCores = job["RequestCpus"]
                     thisMemory = job["RequestMemory"]
-                    if thisCores > autoCPUs or thisMemory > autoCPUs * memoryPerCore:
-                        if verbose:
-                            print("Skipping large job")
-                            print(jid)
-                        continue
                     totalCores = totalCores + thisCores
                     if verbose:
                         print(
-                            f"glideinsFromJobPressure: The key in the dictionary is  {jid}"
+                            f"smallGlideins: The key in the dictionary is  {jid}"
                         )
                         print(f"\tRequestCpus {thisCores}")
                         print(f"\tCurrent value of totalCores {totalCores}")
@@ -450,15 +446,18 @@ class SlurmPlugin(Allocator):
                             print(f"\t\tCurrent value of totalCores {totalCores}")
 
             else:
-                print("Length Zero")
-                print(len(condorq_data))
+                print("Auto: No small htcondor jobs detected.")
+                return
         except Exception as exc:
             raise type(exc)("Problem querying condor schedd for jobs") from None
 
-        print(f"glideinsFromJobPressure: The final TotalCores is {totalCores}")
+        print(f"smallGlideins: The final TotalCores is {totalCores}")
+
+        # The number of Glideins needed to service the detected Idle jobs
+        # is "numberOfGlideins"
         numberOfGlideins = math.ceil(totalCores / autoCPUs)
         print(
-            f"glideinsFromJobPressure: Target # Glideins for Idle Jobs is {numberOfGlideins}"
+            f"smallGlideins: Number for detected jobs is {numberOfGlideins}"
         )
 
         # Check Slurm queue Running glideins
@@ -483,30 +482,44 @@ class SlurmPlugin(Allocator):
         existingGlideinsIdle = int(resultPD.decode("UTF-8"))
 
         print(
-            f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}"
+            f"smallGlideins: existingGlideinsRunning {existingGlideinsRunning}"
         )
-        print(f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}")
-        numberOfGlideinsRed = numberOfGlideins - existingGlideinsIdle
+        print(f"smallGlideins: existingGlideinsIdle {existingGlideinsIdle}")
 
+        # The number of Glideins that we need to submit to service the detected 
+        # Idle jobs is "numberOfGlideins" less the existing Idle glideins
+        numberOfGlideinsReduced = numberOfGlideins - existingGlideinsIdle
         print(
-            f"glideinsFromJobPressure: Target # Glideins Max to Submit {numberOfGlideinsRed}"
+            f"smallGlideins: Target Number to submit {numberOfGlideinsReduced}"
         )
 
-        maxIdleGlideins = maxNumberOfGlideins - existingGlideinsRunning
-        maxSubmitGlideins = maxIdleGlideins - existingGlideinsIdle
+        # The maximum number of Glideins that we can submit with 
+        # the imposed threshold (maxNumberOfGlideins) 
+        # is maxSubmitGlideins
+        existingGlideins = existingGlideinsRunning + existingGlideinsIdle
+        maxSubmitGlideins = maxNumberOfGlideins - existingGlideins
+        print(f"smallGlideins: maxNumberOfGlideins {maxNumberOfGlideins}")
+        print(f"smallGlideins: maxSubmitGlideins {maxSubmitGlideins}")
 
-        print(f"glideinsFromJobPressure: maxNumberOfGlideins {maxNumberOfGlideins}")
+        # Reduce the number of Glideins to submit if threshold exceeded
+        if numberOfGlideinsReduced > maxSubmitGlideins:
+            numberOfGlideinsReduced = maxSubmitGlideins
+            print("smallGlideins: Reducing due to threshold.")
         print(
-            f"glideinsFromJobPressure: existingGlideinsRunning {existingGlideinsRunning}"
+            f"smallGlideins: Number of Glideins to submit is {numberOfGlideinsReduced}"
         )
-        print(f"glideinsFromJobPressure: maxIdleGlideins {maxIdleGlideins}")
-        print(f"glideinsFromJobPressure: existingGlideinsIdle {existingGlideinsIdle}")
-        print(f"glideinsFromJobPressure: maxSubmitGlideins {maxSubmitGlideins}")
 
-        if numberOfGlideinsRed > maxSubmitGlideins:
-            numberOfGlideinsRed = maxSubmitGlideins
+        cpuopt = f"--cpus-per-task {autoCPUs}"
+        memopt = f"--mem {memoryLimit}"
+        jobopt = f"-J {jobname}"
+        cmd = f"sbatch {cpuopt} {memopt} {jobopt} {generatedSlurmFile}"
+        if verbose:
+            print(cmd)
+        for glide in range(0, numberOfGlideinsReduced):
+            print("Submitting glidein %s " % glide)
+            exitCode = self.runCommand(cmd, verbose)
+            if exitCode != 0:
+                print("error running %s" % cmd)
+                sys.exit(exitCode)
 
-        print(
-            f"glideinsFromJobPressure: The number of Glideins to submit now is  {numberOfGlideinsRed}"
-        )
-        return numberOfGlideinsRed
+        return

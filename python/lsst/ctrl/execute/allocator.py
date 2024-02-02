@@ -100,6 +100,8 @@ class Allocator:
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
         self.commandLineDefaults["MEMPERCORE"] = 4096
+        self.commandLineDefaults["ALLOWEDAUTO"] = 500
+        self.commandLineDefaults["AUTOCPUS"] = 16
         self.commandLineDefaults["QUEUE"] = self.opts.queue
         self.load()
 
@@ -325,6 +327,12 @@ class Allocator:
         """
         return self.getParameter("MEMPERCORE")
 
+    def getAllowedAutoGlideins(self):
+        """Accessor for AllowedAutoGlideins
+        @return the value of AllowedAuto
+        """
+        return self.getParameter("ALLOWEDAUTO")
+
     def getQOS(self):
         """Accessor for QOS
         @return the value of QOS
@@ -341,8 +349,7 @@ class Allocator:
         """Size of standard glideins for allocateNodes auto
         @return the value of autoCPUs
         """
-        autoCPUs = 16
-        return autoCPUs
+        return self.getParameter("AUTOCPUS")
 
     def getWallClock(self):
         """Accessor for WALL_CLOCK
