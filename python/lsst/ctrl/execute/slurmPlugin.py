@@ -25,7 +25,6 @@
 import hashlib
 import math
 import os
-import socket
 import subprocess
 import sys
 import time
@@ -248,7 +247,9 @@ class SlurmPlugin(Allocator):
             large = f"(RequestMemory>{memoryLimit} || RequestCpus>{autoCPUs})"
             # The constraint determines that the jobs to be returned belong to
             # the current user (Owner) and are Idle vanilla universe jobs.
-            full_constraint = f"{owner} && {jstat} && {bps1} && {bps2} && {juniv} && {large}"
+            full_constraint = (
+                f"{owner} && {jstat} && {bps1} && {bps2} && {juniv} && {large}"
+            )
             if verbose:
                 print("Find Large BPS Jobs:")
                 print(f"full_constraint {full_constraint}")
