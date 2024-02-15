@@ -218,11 +218,6 @@ class SlurmPlugin(Allocator):
         auser = self.getUserName()
 
         try:
-            schedd_name = socket.getfqdn()
-            coll = htcondor.Collector()
-            schedd_ad = coll.locate(htcondor.DaemonTypes.Schedd)
-            scheddref = htcondor.Schedd(schedd_ad)
-
             # Query for jobs that have (bps_run isnt Undefined)
             #                          (bps_job_label isnt Undefined)
             # and amongst those identify Large jobs
@@ -241,117 +236,113 @@ class SlurmPlugin(Allocator):
                 "JobUniverse",
                 "RequestMemory",
             ]
-            owner = f'(Owner=="{auser}") '
+            owner = f'(Owner=="{auser}")'
             # query for idle jobs
-            jstat = f"&& (JobStatus=={htcondor.JobStatus.IDLE}) "
-            bps1 = "&& (bps_run isnt Undefined) "
-            bps2 = "&& (bps_job_label isnt Undefined) "
+            jstat = f"(JobStatus=={htcondor.JobStatus.IDLE})"
+            bps1 = "(bps_run isnt Undefined)"
+            bps2 = "(bps_job_label isnt Undefined)"
             # query for vanilla universe
             # JobUniverse constants are in htcondor C++
             # UNIVERSE = { 1: "Standard", ..., 5: "Vanilla", ... }
-            juniv = "&& (JobUniverse==5) "
-            large = f"&& (RequestMemory>{memoryLimit} || RequestCpus>{autoCPUs})"
+            juniv = "(JobUniverse==5)"
+            large = f"(RequestMemory>{memoryLimit} || RequestCpus>{autoCPUs})"
             # The constraint determines that the jobs to be returned belong to
             # the current user (Owner) and are Idle vanilla universe jobs.
-            full_constraint = f"{owner}{jstat}{bps1}{bps2}{juniv}{large}"
+            full_constraint = f"{owner} && {jstat} && {bps1} && {bps2} && {juniv} && {large}"
             if verbose:
                 print("Find Large BPS Jobs:")
                 print(f"full_constraint {full_constraint}")
             condorq_data = condor_q(
                 constraint=full_constraint,
-                schedds={schedd_name: scheddref},
                 projection=projection,
             )
 
-            if len(condorq_data) == 0:
+            if not condorq_data:
                 print("Auto: No Large BPS Jobs.")
                 return
 
-            if len(condorq_data) > 0:
-                # Collect a list of the labels
-                condorq_bps_large = condorq_data[schedd_name]
-                job_labels = []
+            # Collect a list of the labels
+            schedd_name = list(condorq_data.keys())[0]
+            condorq_bps_large = condorq_data[schedd_name]
+            job_labels = []
+            if verbose:
+                print("Loop over list of Large Jobs")
+            for jid in list(condorq_bps_large.keys()):
+                ajob = condorq_bps_large[jid]
                 if verbose:
-                    print("Loop over list of Large Jobs")
-                for jid in list(condorq_bps_large.keys()):
-                    ajob = condorq_bps_large[jid]
-                    if verbose:
-                        print(jid)
-                        print(ajob["bps_job_label"])
-                    job_labels.append(ajob["bps_job_label"])
+                    print(jid)
+                    print(ajob["bps_job_label"])
+                job_labels.append(ajob["bps_job_label"])
 
-                #
-                # Get a list of the unique labels
-                #
-                unique_labels = set(job_labels)
+            #
+            # Get a list of the unique labels
+            #
+            unique_labels = set(job_labels)
 
-                #
-                # Make a jobs dictionary with the unique labels as keys
-                #
+            #
+            # Make a jobs dictionary with the unique labels as keys
+            #
+            if verbose:
+                print("Loop over unique job label list")
+            label_dict = {}
+            for job_label in unique_labels:
+                hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
+                shash = hash[:6]
+                empty_list = []
+                label_dict[job_label] = empty_list
+
+            # Loop over the Large jobs and categorize
+            for jid in list(condorq_bps_large.keys()):
+                ajob = condorq_bps_large[jid]
+                this_label = ajob["bps_job_label"]
+                this_list = label_dict[this_label]
+                this_list.append(ajob)
+
+            for job_label in unique_labels:
                 if verbose:
-                    print("Loop over unique job label list")
-                label_dict = {}
-                for job_label in unique_labels:
-                    hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
-                    shash = hash[:6]
-                    empty_list = []
-                    label_dict[job_label] = empty_list
+                    print(f"\n{job_label}")
+                alist = label_dict[job_label]
+                thisMemory = alist[0]["RequestMemory"]
+                useCores = alist[0]["RequestCpus"]
+                if useCores < autoCPUs:
+                    useCores = autoCPUs
+                hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
+                shash = hash[:6]
+                numberOfGlideins = len(alist)
+                jobname = f"{auser}_{shash}"
+                print(f"{job_label} {jobname} target {numberOfGlideins}")
 
-                # Loop over the Large jobs and categorize
-                for jid in list(condorq_bps_large.keys()):
-                    ajob = condorq_bps_large[jid]
-                    this_label = ajob["bps_job_label"]
-                    this_list = label_dict[this_label]
-                    this_list.append(ajob)
+                # Do not submit squeue commands rapidly
+                time.sleep(2)
+                # Check Slurm queue Idle Glideins
+                batcmd = f"squeue --noheader --states=PD --name={jobname} | wc -l"
+                if verbose:
+                    print("The squeue command is: %s " % batcmd)
+                try:
+                    resultPD = subprocess.check_output(batcmd, shell=True)
+                except subprocess.CalledProcessError as e:
+                    print(e.output)
+                existingGlideinsIdle = int(resultPD.decode("UTF-8"))
+                if verbose:
+                    print(f"existingGlideinsIdle {jobname}")
+                    print(existingGlideinsIdle)
 
-                for job_label in unique_labels:
-                    if verbose:
-                        print(f"\n{job_label}")
-                    existingGlideinsIdle = 0
-                    numberOfGlideinsReduced = 0
-                    numberOfGlideins = 0
-                    alist = label_dict[job_label]
-                    thisMemory = alist[0]["RequestMemory"]
-                    useCores = alist[0]["RequestCpus"]
-                    if useCores < autoCPUs:
-                        useCores = autoCPUs
-                    hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
-                    shash = hash[:6]
-                    numberOfGlideins = len(alist)
-                    jobname = f"{auser}_{shash}"
-                    print(f"{job_label} {jobname} target {numberOfGlideins}")
+                numberOfGlideinsReduced = numberOfGlideins - existingGlideinsIdle
+                if verbose:
+                    print(f"{job_label} reduced {numberOfGlideinsReduced}")
 
-                    # Do not submit squeue commands rapidly
-                    time.sleep(2)
-                    # Check Slurm queue Idle Glideins
-                    batcmd = f"squeue --noheader --states=PD --name={jobname} | wc -l"
-                    if verbose:
-                        print("The squeue command is: %s " % batcmd)
-                    try:
-                        resultPD = subprocess.check_output(batcmd, shell=True)
-                    except subprocess.CalledProcessError as e:
-                        print(e.output)
-                    existingGlideinsIdle = int(resultPD.decode("UTF-8"))
-                    if verbose:
-                        print(f"existingGlideinsIdle {jobname}")
-                        print(existingGlideinsIdle)
-
-                    numberOfGlideinsReduced = numberOfGlideins - existingGlideinsIdle
-                    if verbose:
-                        print(f"{job_label} reduced {numberOfGlideinsReduced}")
-
-                    cpuopt = f"--cpus-per-task {useCores}"
-                    memopt = f"--mem {thisMemory}"
-                    jobopt = f"-J {jobname}"
-                    cmd = f"sbatch {cpuopt} {memopt} {jobopt} {generatedSlurmFile}"
-                    if verbose:
-                        print(cmd)
-                    for glide in range(0, numberOfGlideinsReduced):
-                        print("Submitting Large glidein %s " % glide)
-                        exitCode = self.runCommand(cmd, verbose)
-                        if exitCode != 0:
-                            print("error running %s" % cmd)
-                            sys.exit(exitCode)
+                cpuopt = f"--cpus-per-task {useCores}"
+                memopt = f"--mem {thisMemory}"
+                jobopt = f"-J {jobname}"
+                cmd = f"sbatch {cpuopt} {memopt} {jobopt} {generatedSlurmFile}"
+                if verbose:
+                    print(cmd)
+                for glide in range(0, numberOfGlideinsReduced):
+                    print("Submitting Large glidein %s " % glide)
+                    exitCode = self.runCommand(cmd, verbose)
+                    if exitCode != 0:
+                        print("error running %s" % cmd)
+                        sys.exit(exitCode)
 
         except Exception as exc:
             raise type(exc)("Problem querying condor schedd for jobs") from None
@@ -381,10 +372,6 @@ class SlurmPlugin(Allocator):
         totalCores = 0
 
         try:
-            schedd_name = socket.getfqdn()
-            coll = htcondor.Collector()
-            schedd_ad = coll.locate(htcondor.DaemonTypes.Schedd)
-            scheddref = htcondor.Schedd(schedd_ad)
             # projection contains the job classads to be returned.
             # These include the cpu and memory profile of each job,
             # in the form of RequestCpus and RequestMemory
@@ -395,55 +382,57 @@ class SlurmPlugin(Allocator):
                 "JobUniverse",
                 "RequestMemory",
             ]
-            owner = f'(Owner=="{auser}") '
+            owner = f'(Owner=="{auser}")'
             # query for idle jobs
-            jstat = f"&& (JobStatus=={htcondor.JobStatus.IDLE}) "
+            jstat = f"(JobStatus=={htcondor.JobStatus.IDLE})"
             # query for vanilla universe
             # JobUniverse constants are in htcondor C++
             # UNIVERSE = { 1: "Standard", ..., 5: "Vanilla", ... }
-            juniv = "&& (JobUniverse==5)"
-            small = f"&& (RequestMemory<={memoryLimit} && RequestCpus<={autoCPUs})"
+            juniv = "(JobUniverse==5)"
+            small = f"(RequestMemory<={memoryLimit} && RequestCpus<={autoCPUs})"
             # The constraint determines that the jobs to be returned belong to
             # the current user (Owner) and are Idle vanilla universe jobs.
-            full_constraint = f"{owner}{jstat}{juniv}{small}"
+            full_constraint = f"{owner} && {jstat} && {juniv} && {small}"
             if verbose:
                 print("\nQuerying condor queue for standard jobs")
                 print(f"full_constraint {full_constraint}")
             condorq_data = condor_q(
                 constraint=full_constraint,
-                schedds={schedd_name: scheddref},
                 projection=projection,
             )
-            if len(condorq_data) > 0:
-                print("smallGlideins: Fetched")
-                condorq_bps = condorq_data[schedd_name]
-                if verbose:
-                    print(len(condorq_bps))
-                    # This can be extremely large
-                    # print(condorq_bps)
-                # disassemble the dictionary of dictionaries
-                for jid in list(condorq_bps.keys()):
-                    job = condorq_bps[jid]
-                    thisCores = job["RequestCpus"]
-                    thisMemory = job["RequestMemory"]
-                    totalCores = totalCores + thisCores
-                    if verbose:
-                        print(f"smallGlideins: The key in the dictionary is {jid}")
-                        print(f"\tRequestCpus {thisCores}")
-                        print(f"\tCurrent value of totalCores {totalCores}")
-                    thisRatio = thisMemory / memoryPerCore
-                    if thisRatio > thisCores:
-                        if verbose:
-                            print("\t\tNeed to Add More:")
-                            print(f"\t\tRequestMemory is {thisMemory} ")
-                            print(f"\t\tRatio to {memoryPerCore} MB is {thisRatio} ")
-                        totalCores = totalCores + (thisRatio - thisCores)
-                        if verbose:
-                            print(f"\t\tCurrent value of totalCores {totalCores}")
 
-            else:
+            if not condorq_data:
                 print("Auto: No small htcondor jobs detected.")
                 return
+
+            print("smallGlideins: Jobs Fetched")
+
+            schedd_name = list(condorq_data.keys())[0]
+            condorq_bps = condorq_data[schedd_name]
+            if verbose:
+                print(len(condorq_bps))
+                # This can be extremely large
+                # print(condorq_bps)
+            # disassemble the dictionary of dictionaries
+            for jid in list(condorq_bps.keys()):
+                job = condorq_bps[jid]
+                thisCores = job["RequestCpus"]
+                thisMemory = job["RequestMemory"]
+                totalCores = totalCores + thisCores
+                if verbose:
+                    print(f"smallGlideins: The key in the dictionary is {jid}")
+                    print(f"\tRequestCpus {thisCores}")
+                    print(f"\tCurrent value of totalCores {totalCores}")
+                thisRatio = thisMemory / memoryPerCore
+                if thisRatio > thisCores:
+                    if verbose:
+                        print("\t\tNeed to Add More:")
+                        print(f"\t\tRequestMemory is {thisMemory} ")
+                        print(f"\t\tRatio to {memoryPerCore} MB is {thisRatio} ")
+                    totalCores = totalCores + (thisRatio - thisCores)
+                    if verbose:
+                        print(f"\t\tCurrent value of totalCores {totalCores}")
+
         except Exception as exc:
             raise type(exc)("Problem querying condor schedd for jobs") from None
 
