@@ -287,8 +287,6 @@ class SlurmPlugin(Allocator):
                 print("Loop over unique job label list")
             label_dict = {}
             for job_label in unique_labels:
-                hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
-                shash = hash[:6]
                 empty_list = []
                 label_dict[job_label] = empty_list
 
