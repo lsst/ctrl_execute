@@ -238,9 +238,7 @@ class SlurmPlugin(Allocator):
 
             # The constraint determines that the jobs to be returned belong to
             # the current user (Owner) and are Idle vanilla universe jobs.
-            full_constraint = (
-                f"{owner} && {jstat} && {juniv}"
-            )
+            full_constraint = f"{owner} && {jstat} && {juniv}"
             print("Auto: Query for htcondor jobs.")
             if verbose:
                 print(f"full_constraint {full_constraint}")
@@ -314,7 +312,9 @@ class SlurmPlugin(Allocator):
                 cmd = f"sbatch {cpuopt} {memopt} {jobopt} {generatedSlurmFile}"
                 if verbose:
                     print(cmd)
-                print(f"Submitting Large glidein for {ajob['ClusterId']}.{ajob['ProcId']}")
+                print(
+                    f"Submitting Large glidein for {ajob['ClusterId']}.{ajob['ProcId']}"
+                )
                 time.sleep(3)
                 exitCode = self.runCommand(cmd, verbose)
                 if exitCode != 0:
@@ -440,4 +440,3 @@ class SlurmPlugin(Allocator):
             print(e.output)
         numberOfJobs = int(resultPD.decode("UTF-8"))
         return numberOfJobs
-
