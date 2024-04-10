@@ -398,7 +398,7 @@ class SlurmPlugin(Allocator):
             # required by the set of small jobs. This calculation utilizes
             # the requested cpus for a job, but also checks the requested
             # memory and counts an effective core for each 'memoryPerCore'
-            # of memory (by default the 4GB per core than S3DF Slurm schedules).
+            # of memory (by default the 4GB per core of S3DF Slurm scheduler).
             totalCores = 0
             for ajob in condorq_small:
                 requestedCpus = ajob["RequestCpus"]
