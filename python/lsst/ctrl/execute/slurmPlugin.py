@@ -36,6 +36,69 @@ from lsst.ctrl.execute.allocator import Allocator
 
 
 class SlurmPlugin(Allocator):
+
+    @staticmethod
+    def countSlurmJobs(jobname, jobstates):
+        """Check Slurm queue for Glideins of given states
+
+        Parameters
+        ----------
+        jobname : `string`
+                  Slurm jobname to be searched for via squeue.
+        jobstates : `string`
+                  Slurm jobstates to be searched for via squeue.
+
+        Returns
+        -------
+        numberOfJobs : `int`
+                       The number of Slurm jobs detected via squeue.
+        """
+        batcmd = f"squeue --noheader --states={jobstates} --name={jobname} | wc -l"
+        print(f"The squeue command is {batcmd}")
+        time.sleep(3)
+        try:
+            resultPD = subprocess.check_output(batcmd, shell=True)
+        except subprocess.CalledProcessError as e:
+            print(e.output)
+        numberOfJobs = int(resultPD.decode("UTF-8"))
+        return numberOfJobs
+
+    @staticmethod
+    def countIdleSlurmJobs(jobname):
+        """Check Slurm queue for Idle Glideins
+
+        Parameters
+        ----------
+        jobname : `string`
+            Slurm jobname to be searched for via squeue.
+
+        Returns
+        -------
+        numberOfJobs : `int`
+                       The number of Slurm jobs detected via squeue.
+        """
+        print(f"Checking if idle Slurm job {jobname} exists:")
+        numberOfJobs = SlurmPlugin.countSlurmJobs(jobname, jobstates="PD")
+        return numberOfJobs
+
+    @staticmethod
+    def countRunningSlurmJobs(jobname):
+        """Check Slurm queue for Running Glideins
+
+        Parameters
+        ----------
+        jobname : `string`
+            Slurm jobname to be searched for via squeue.
+
+        Returns
+        -------
+        numberOfJobs : `int`
+                       The number of Slurm jobs detected via squeue.
+        """
+        print(f"Checking if running Slurm job {jobname} exists:")
+        numberOfJobs = SlurmPlugin.countSlurmJobs(jobname, jobstates="R")
+        return numberOfJobs
+
     def submit(self, platform, platformPkgDir):
         configName = os.path.join(platformPkgDir, "etc", "config", "slurmConfig.py")
 
@@ -215,33 +278,33 @@ class SlurmPlugin(Allocator):
         memoryLimit = autoCPUs * memoryPerCore
         auser = self.getUserName()
 
-        try:
-            # projection contains the job classads to be returned.
-            # These include the cpu and memory profile of each job,
-            # in the form of RequestCpus and RequestMemory
-            projection = [
-                "ClusterId",
-                "ProcId",
-                "JobStatus",
-                "Owner",
-                "RequestCpus",
-                "JobUniverse",
-                "RequestMemory",
-            ]
-            owner = f'(Owner=="{auser}")'
-            # query for idle jobs
-            jstat = f"(JobStatus=={htcondor.JobStatus.IDLE})"
-            # query for vanilla universe
-            # JobUniverse constants are in htcondor C++
-            # UNIVERSE = { 1: "Standard", ..., 5: "Vanilla", ... }
-            juniv = "(JobUniverse==5)"
+        # projection contains the job classads to be returned.
+        # These include the cpu and memory profile of each job,
+        # in the form of RequestCpus and RequestMemory
+        projection = [
+            "ClusterId",
+            "ProcId",
+            "JobStatus",
+            "Owner",
+            "RequestCpus",
+            "JobUniverse",
+            "RequestMemory",
+        ]
+        owner = f'(Owner=="{auser}")'
+        # query for idle jobs
+        jstat = f"(JobStatus=={htcondor.JobStatus.IDLE})"
+        # query for vanilla universe
+        # JobUniverse constants are in htcondor C++
+        # UNIVERSE = { 1: "Standard", ..., 5: "Vanilla", ... }
+        juniv = "(JobUniverse==5)"
 
-            # The constraint determines that the jobs to be returned belong to
-            # the current user (Owner) and are Idle vanilla universe jobs.
-            full_constraint = f"{owner} && {jstat} && {juniv}"
-            print("Auto: Query for htcondor jobs.")
-            if verbose:
-                print(f"full_constraint {full_constraint}")
+        # The constraint determines that the jobs to be returned belong to
+        # the current user (Owner) and are Idle vanilla universe jobs.
+        full_constraint = f"{owner} && {jstat} && {juniv}"
+        print("Auto: Query for htcondor jobs.")
+        if verbose:
+            print(f"full_constraint {full_constraint}")
+        try:
             condorq_data = condor_q(
                 constraint=full_constraint,
                 projection=projection,
@@ -256,22 +319,20 @@ class SlurmPlugin(Allocator):
 
         condorq_large = []
         condorq_small = []
-        schedd_name = list(condorq_data.keys())[0]
-        condorq_full = condorq_data[schedd_name]
+        schedd_name, condorq_full = condorq_data.popitem()
 
         print("Auto: Search for Large htcondor jobs.")
-        for jid in list(condorq_full.keys()):
-            ajob = condorq_full[jid]
+        for jid, ajob in condorq_full.items():
             thisCpus = ajob["RequestCpus"]
             if isinstance(ajob["RequestMemory"], int):
                 thisEvalMemory = ajob["RequestMemory"]
             else:
                 thisEvalMemory = ajob["RequestMemory"].eval()
-                ajob["RequestMemoryEval"] = thisEvalMemory
                 if verbose:
                     print(f"Making an evaluation {thisEvalMemory}")
             # Search for jobs that are Large jobs
             # thisCpus > 16 or thisEvalMemory > 16*4096
+            ajob["RequestMemoryEval"] = thisEvalMemory
             if thisEvalMemory > memoryLimit or thisCpus > autoCPUs:
                 print(f"Appending a Large Job {jid}")
                 condorq_large.append(ajob)
@@ -286,11 +347,7 @@ class SlurmPlugin(Allocator):
                 if verbose:
                     print(f"\n{ajob['ClusterId']}.{ajob['ProcId']}")
                     print(ajob)
-                if isinstance(ajob["RequestMemory"], int):
-                    thisMemory = ajob["RequestMemory"]
-                else:
-                    # Do not eval() a second time, recall the value
-                    thisMemory = ajob["RequestMemoryEval"]
+                thisMemory = ajob["RequestMemoryEval"]
                 useCores = ajob["RequestCpus"]
                 clusterid = ajob["ClusterId"]
                 procid = ajob["ProcId"]
@@ -300,9 +357,10 @@ class SlurmPlugin(Allocator):
                 hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
                 shash = hash[:6]
                 jobname = f"{auser}_{shash}"
-                print(f"jobname {jobname}")
+                if verbose:
+                    print(f"jobname {jobname}")
                 # Check if Job exists Idle in the queue
-                numberJobname = self.countIdleSlurmJobs(jobname)
+                numberJobname = SlurmPlugin.countIdleSlurmJobs(jobname)
                 if numberJobname > 0:
                     print(f"Job {jobname} already exists, do not submit")
                     continue
@@ -335,68 +393,78 @@ class SlurmPlugin(Allocator):
             if maxNumberOfGlideins > maxAllowedNumberOfGlideins:
                 maxNumberOfGlideins = maxAllowedNumberOfGlideins
                 print("Reducing Small Glidein limit due to threshold.")
-            # initialize counter
+            #
+            # In the following loop we calculate the number of cores
+            # required by the set of small jobs. This calculation utilizes
+            # the requested cpus for a job, but also checks the requested
+            # memory and counts an effective core for each 'memoryPerCore'
+            # of memory (by default the 4GB per core than S3DF Slurm schedules).
             totalCores = 0
             for ajob in condorq_small:
-                thisCores = ajob["RequestCpus"]
-                if isinstance(ajob["RequestMemory"], int):
-                    thisMemory = ajob["RequestMemory"]
-                else:
-                    thisMemory = ajob["RequestMemoryEval"]
-                    print("Using RequestMemoryEval")
-                totalCores = totalCores + thisCores
+                requestedCpus = ajob["RequestCpus"]
+                # if isinstance(ajob["RequestMemory"], int):
+                #     requestedMemory = ajob["RequestMemory"]
+                # else:
+                #   requestedMemory = ajob["RequestMemoryEval"]
+                #    print("Using RequestMemoryEval")
+                requestedMemory = ajob["RequestMemoryEval"]
+                totalCores = totalCores + requestedCpus
                 if verbose:
-                    print(f"smallGlideins: jobid {ajob['ClusterId']}.{ajob['ProcId']}")
-                    print(f"\tRequestCpus {thisCores}")
+                    print(f"small: jobid {ajob['ClusterId']}.{ajob['ProcId']}")
+                    print(f"\tRequestCpus {requestedCpus}")
                     print(f"\tCurrent value of totalCores {totalCores}")
-                thisRatio = thisMemory / memoryPerCore
-                if thisRatio > thisCores:
+                neededCpus = requestedMemory / memoryPerCore
+                if neededCpus > requestedCpus:
                     if verbose:
                         print("\t\tNeed to Add More:")
-                        print(f"\t\tRequestMemory is {thisMemory} ")
-                        print(f"\t\tRatio to {memoryPerCore} MB is {thisRatio} ")
-                    totalCores = totalCores + (thisRatio - thisCores)
+                        print(f"\t\tRequestMemory is {requestedMemory} ")
+                        print(f"\t\tRatio to {memoryPerCore} MB is {neededCpus}")
+                    totalCores = totalCores + (neededCpus - requestedCpus)
                     if verbose:
                         print(f"\t\tCurrent value of totalCores {totalCores}")
 
-            print(f"smallGlideins: The final TotalCores is {totalCores}")
+            print(f"small: The final TotalCores is {totalCores}")
 
             # The number of Glideins needed to service the detected Idle jobs
             # is "numberOfGlideins"
             numberOfGlideins = math.ceil(totalCores / autoCPUs)
-            print(f"smallGlideins: Number for detected jobs is {numberOfGlideins}")
+            print(f"small: Number for detected jobs is {numberOfGlideins}")
 
             jobname = f"glide_{auser}"
 
             # Check Slurm queue Running glideins
-            existingGlideinsRunning = self.countRunningSlurmJobs(jobname)
+            existingGlideinsRunning = SlurmPlugin.countRunningSlurmJobs(jobname)
 
             # Check Slurm queue Idle Glideins
-            existingGlideinsIdle = self.countIdleSlurmJobs(jobname)
+            existingGlideinsIdle = SlurmPlugin.countIdleSlurmJobs(jobname)
 
-            print(f"smallGlideins: existingGlideinsRunning {existingGlideinsRunning}")
-            print(f"smallGlideins: existingGlideinsIdle {existingGlideinsIdle}")
+            if verbose:
+                print(f"small: existingGlideinsRunning {existingGlideinsRunning}")
+                print(f"small: existingGlideinsIdle {existingGlideinsIdle}")
 
             # The number of Glideins needed to service the detected
             # Idle jobs is "numberOfGlideins" less the existing Idle glideins
             numberOfGlideinsReduced = numberOfGlideins - existingGlideinsIdle
-            print(f"smallGlideins: Target Number to submit {numberOfGlideinsReduced}")
+            if verbose:
+                print(f"small: Target Number to submit {numberOfGlideinsReduced}")
 
             # The maximum number of Glideins that we can submit with
             # the imposed threshold (maxNumberOfGlideins)
             # is maxSubmitGlideins
             existingGlideins = existingGlideinsRunning + existingGlideinsIdle
             maxSubmitGlideins = maxNumberOfGlideins - existingGlideins
-            print(f"smallGlideins: maxNumberOfGlideins {maxNumberOfGlideins}")
-            print(f"smallGlideins: maxSubmitGlideins {maxSubmitGlideins}")
+            if verbose:
+                print(f"small: maxNumberOfGlideins {maxNumberOfGlideins}")
+                print(f"small: maxSubmitGlideins {maxSubmitGlideins}")
 
             # Reduce the number of Glideins to submit if threshold exceeded
             if numberOfGlideinsReduced > maxSubmitGlideins:
                 numberOfGlideinsReduced = maxSubmitGlideins
-                print("smallGlideins: Reducing due to threshold.")
-            print(
-                f"smallGlideins: Number of Glideins to submit is {numberOfGlideinsReduced}"
-            )
+                print("small: Reducing due to threshold.")
+            if verbose:
+                print(
+                    f"small: Number of Glideins to submit is {numberOfGlideinsReduced}"
+                )
 
             cpuopt = f"--cpus-per-task {autoCPUs}"
             memopt = f"--mem {memoryLimit}"
@@ -412,31 +480,3 @@ class SlurmPlugin(Allocator):
                     sys.exit(exitCode)
 
         return
-
-    def countIdleSlurmJobs(self, jobname):
-        """Check Slurm queue for Idle Glideins"""
-
-        print(f"Checking if Idle Slurm job {jobname} exists:")
-        batcmd = f"squeue --noheader --states=PD --name={jobname} | wc -l"
-        print(f"The squeue command is {batcmd}")
-        time.sleep(3)
-        try:
-            resultPD = subprocess.check_output(batcmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            print(e.output)
-        numberOfJobs = int(resultPD.decode("UTF-8"))
-        return numberOfJobs
-
-    def countRunningSlurmJobs(self, jobname):
-        """Check Slurm queue for Running Glideins"""
-
-        print(f"Checking if running Slurm job {jobname} exists:")
-        batcmd = f"squeue --noheader --states=R --name={jobname} | wc -l"
-        print(f"The squeue command is {batcmd}")
-        time.sleep(3)
-        try:
-            resultPD = subprocess.check_output(batcmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            print(e.output)
-        numberOfJobs = int(resultPD.decode("UTF-8"))
-        return numberOfJobs
