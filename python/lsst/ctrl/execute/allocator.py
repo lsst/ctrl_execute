@@ -120,6 +120,11 @@ class Allocator:
         # The tempfile.mkstemp method restricts the file to only the user,
         # and does not guarantee a file name can that easily be identified.
         now = datetime.now()
+        self.defaults["DATE_STRING"] = "%02d_%02d%02d" % (
+            now.year,
+            now.month,
+            now.day,
+        )
         username = pwd.getpwuid(os.geteuid()).pw_name
         ident = "%s_%02d_%02d%02d_%02d%02d%02d" % (
             username,
@@ -188,7 +193,10 @@ class Allocator:
 
         # write these pbs and config files to {LOCAL_DIR}/configs
         self.configDir = os.path.join(
-            self.defaults["LOCAL_SCRATCH"], self.uniqueIdentifier, "configs"
+            self.defaults["LOCAL_SCRATCH"],
+            self.defaults["DATE_STRING"],
+            self.uniqueIdentifier,
+            "configs",
         )
         if not os.path.exists(self.configDir):
             os.makedirs(self.configDir)
