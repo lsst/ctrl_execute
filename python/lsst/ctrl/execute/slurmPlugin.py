@@ -136,9 +136,12 @@ class SlurmPlugin(Allocator):
         # run the sbatch command
         template = Template(self.getLocalScratchDirectory())
         localScratchDir = template.substitute(USER_SCRATCH=self.getUserScratch())
+        slurmSubmitDir = os.path.join(localScratchDir, self.defaults["DATE_STRING"])
         if not os.path.exists(localScratchDir):
             os.mkdir(localScratchDir)
-        os.chdir(localScratchDir)
+        if not os.path.exists(slurmSubmitDir):
+            os.mkdir(slurmSubmitDir)
+        os.chdir(slurmSubmitDir)
         if verbose:
             print(
                 "The working local scratch directory localScratchDir is %s "
