@@ -101,8 +101,6 @@ class SlurmPlugin(Allocator):
 
     def createFilesFromTemplates(self, platformPkgDir):
 
-        print(f"new function createFilesFromTemplates")
-        # create the fully-resolved scratch directory string
         scratchDirParam = self.getScratchDirectory()
         template = Template(scratchDirParam)
         template.substitute(USER_HOME=self.getUserHome())
