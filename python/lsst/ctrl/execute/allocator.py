@@ -198,8 +198,6 @@ class Allocator:
             self.uniqueIdentifier,
             "configs",
         )
-        if not os.path.exists(self.configDir):
-            os.makedirs(self.configDir)
 
         self.submitFileName = os.path.join(
             self.configDir, "alloc_%s.%s" % (self.uniqueIdentifier, suffix)
@@ -221,6 +219,8 @@ class Allocator:
         outfile : `str`
             The newly created file name
         """
+        if not os.path.exists(self.configDir):
+            os.makedirs(self.configDir)
         outfile = self.createFile(inputFile, self.submitFileName)
         if self.opts.verbose:
             print("Wrote new Slurm submit file to %s" % outfile)
