@@ -99,14 +99,20 @@ class SlurmPlugin(Allocator):
         numberOfJobs = SlurmPlugin.countSlurmJobs(jobname, jobstates="R")
         return numberOfJobs
 
-    def submit(self, platform, platformPkgDir):
-        configName = os.path.join(platformPkgDir, "etc", "config", "slurmConfig.py")
+    def createFilesFromTemplates(self, platformPkgDir):
+        """Create the Slurm submit, script, and htcondor config files
 
-        self.loadSlurm(configName, platformPkgDir)
-        verbose = self.isVerbose()
-        auto = self.isAuto()
+        Parameters
+        ----------
+        platformPkgDir : `str`
+            path to the ctrl_platform package being used
 
-        # create the fully-resolved scratch directory string
+        Returns
+        -------
+        generatedSlurmFile : `str`
+            name of the Slurm job description file
+        """
+
         scratchDirParam = self.getScratchDirectory()
         template = Template(scratchDirParam)
         template.substitute(USER_HOME=self.getUserHome())
@@ -129,6 +135,28 @@ class SlurmPlugin(Allocator):
         )
         self.createAllocationFile(allocationName)
 
+        verbose = self.isVerbose()
+        if verbose:
+            print("The generated Slurm submit file is %s " % generatedSlurmFile)
+
+        return generatedSlurmFile
+
+    def submit(self, platform, platformPkgDir):
+        """Submit the glidein jobs to the Batch system
+
+        Parameters
+        ----------
+        platform : `str`
+            name of the target compute platform
+        platformPkgDir : `str`
+            path to the ctrl_platform package being used
+        """
+        configName = os.path.join(platformPkgDir, "etc", "config", "slurmConfig.py")
+
+        self.loadSlurm(configName, platformPkgDir)
+        verbose = self.isVerbose()
+        auto = self.isAuto()
+
         cpus = self.getCPUs()
         memoryPerCore = self.getMemoryPerCore()
         totalMemory = cpus * memoryPerCore
@@ -147,9 +175,6 @@ class SlurmPlugin(Allocator):
                 "The working local scratch directory localScratchDir is %s "
                 % localScratchDir
             )
-            print("The generated Slurm submit file is %s " % generatedSlurmFile)
-
-        cmd = "sbatch --mem %s %s" % (totalMemory, generatedSlurmFile)
 
         auser = self.getUserName()
         jobname = f"glide_{auser}"
@@ -159,8 +184,10 @@ class SlurmPlugin(Allocator):
             print("The user home directory is %s " % self.getUserHome())
 
         if auto:
-            self.glideinsFromJobPressure(generatedSlurmFile)
+            self.glideinsFromJobPressure(platformPkgDir)
         else:
+            generatedSlurmFile = self.createFilesFromTemplates(platformPkgDir)
+            cmd = "sbatch --mem %s %s" % (totalMemory, generatedSlurmFile)
             nodes = self.getNodes()
             # In this case 'nodes' is the Target.
 
@@ -272,8 +299,14 @@ class SlurmPlugin(Allocator):
         os.chmod(outfile, 0o755)
         return outfile
 
-    def glideinsFromJobPressure(self, generatedSlurmFile):
-        """Determine and submit the glideins needed from job pressure"""
+    def glideinsFromJobPressure(self, platformPkgDir):
+        """Determine and submit the glideins needed from job pressure
+
+        Parameters
+        ----------
+        platformPkgDir : `str`
+            path to the ctrl_platform package being used
+        """
 
         verbose = self.isVerbose()
         autoCPUs = self.getAutoCPUs()
@@ -320,6 +353,7 @@ class SlurmPlugin(Allocator):
             print("Auto: No HTCondor Jobs detected.")
             return
 
+        generatedSlurmFile = self.createFilesFromTemplates(platformPkgDir)
         condorq_large = []
         condorq_small = []
         schedd_name, condorq_full = condorq_data.popitem()

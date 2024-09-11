@@ -198,8 +198,6 @@ class Allocator:
             self.uniqueIdentifier,
             "configs",
         )
-        if not os.path.exists(self.configDir):
-            os.makedirs(self.configDir)
 
         self.submitFileName = os.path.join(
             self.configDir, "alloc_%s.%s" % (self.uniqueIdentifier, suffix)
@@ -214,13 +212,15 @@ class Allocator:
         return allocationConfig
 
     def createSubmitFile(self, inputFile):
-        """Creates a PBS file using the file "input" as a Template
+        """Creates a batch submit file using the file "input" as a Template
 
         Returns
         -------
         outfile : `str`
             The newly created file name
         """
+        if not os.path.exists(self.configDir):
+            os.makedirs(self.configDir)
         outfile = self.createFile(inputFile, self.submitFileName)
         if self.opts.verbose:
             print("Wrote new Slurm submit file to %s" % outfile)
