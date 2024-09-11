@@ -100,6 +100,18 @@ class SlurmPlugin(Allocator):
         return numberOfJobs
 
     def createFilesFromTemplates(self, platformPkgDir):
+        """Create the Slurm submit, script, and htcondor config files
+
+        Parameters
+        ----------
+        platformPkgDir : `str`
+            path to the ctrl_platform package being used
+
+        Returns
+        -------
+        generatedSlurmFile : `str`
+            name of the Slurm job description file
+        """
 
         scratchDirParam = self.getScratchDirectory()
         template = Template(scratchDirParam)
@@ -130,6 +142,15 @@ class SlurmPlugin(Allocator):
         return generatedSlurmFile
 
     def submit(self, platform, platformPkgDir):
+        """Submit the glidein jobs to the Batch system
+
+        Parameters
+        ----------
+        platform : `str`
+            name of the target compute platform
+        platformPkgDir : `str`
+            path to the ctrl_platform package being used
+        """
         configName = os.path.join(platformPkgDir, "etc", "config", "slurmConfig.py")
 
         self.loadSlurm(configName, platformPkgDir)
@@ -279,7 +300,13 @@ class SlurmPlugin(Allocator):
         return outfile
 
     def glideinsFromJobPressure(self, platformPkgDir):
-        """Determine and submit the glideins needed from job pressure"""
+        """Determine and submit the glideins needed from job pressure
+
+        Parameters
+        ----------
+        platformPkgDir : `str`
+            path to the ctrl_platform package being used
+        """
 
         verbose = self.isVerbose()
         autoCPUs = self.getAutoCPUs()

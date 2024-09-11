@@ -212,7 +212,7 @@ class Allocator:
         return allocationConfig
 
     def createSubmitFile(self, inputFile):
-        """Creates a PBS file using the file "input" as a Template
+        """Creates a batch submit file using the file "input" as a Template
 
         Returns
         -------
