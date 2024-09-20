@@ -22,6 +22,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import logging
 import os
 import pwd
 import sys
@@ -32,6 +33,8 @@ from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
 from lsst.ctrl.execute.templateWriter import TemplateWriter
+
+_LOG = logging.getLogger(__name__)
 
 
 class Allocator:
@@ -145,7 +148,6 @@ class Allocator:
         self.defaults["LOCAL_SCRATCH"] = tempLocalScratch.substitute(
             USER_SCRATCH=self.defaults["USER_SCRATCH"]
         )
-        # print("localScratch-> %s" % self.defaults["LOCAL_SCRATCH"])
         self.defaults["SCHEDULER"] = self.configuration.platform.scheduler
 
     def loadAllocationConfig(self, name, suffix):
@@ -222,8 +224,7 @@ class Allocator:
         if not os.path.exists(self.configDir):
             os.makedirs(self.configDir)
         outfile = self.createFile(inputFile, self.submitFileName)
-        if self.opts.verbose:
-            print("Wrote new Slurm submit file to %s" % outfile)
+        _LOG.debug("Wrote new Slurm submit file to %s", outfile)
         return outfile
 
     def createCondorConfigFile(self, input):
@@ -235,8 +236,7 @@ class Allocator:
             The newly created file name
         """
         outfile = self.createFile(input, self.condorConfigFileName)
-        if self.opts.verbose:
-            print("Wrote new condor configuration file to %s" % outfile)
+        _LOG.debug("Wrote new condor configuration file to %s", outfile)
         return outfile
 
     def createFile(self, input, output):
@@ -249,8 +249,7 @@ class Allocator:
             The newly created file name
         """
         resolvedInputName = envString.resolve(input)
-        if self.opts.verbose:
-            print("Creating file from template using %s" % resolvedInputName)
+        _LOG.debug("Creating file from template using %s", resolvedInputName)
         template = TemplateWriter()
         # Uses the associative arrays of "defaults" and "commandLineDefaults"
         # to write out the new file from the template.

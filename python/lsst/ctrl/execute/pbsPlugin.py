@@ -22,11 +22,14 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import logging
 import os
 import sys
 from string import Template
 
 from lsst.ctrl.execute.allocator import Allocator
+
+_LOG = logging.getLogger(__name__)
 
 
 class PbsPlugin(Allocator):
@@ -72,11 +75,10 @@ class PbsPlugin(Allocator):
             scratchDir,
             os.path.basename(generatedPbsFile),
         )
-        if verbose:
-            print(cmd)
+        _LOG.debug(cmd)
         exitCode = self.runCommand(cmd, verbose)
         if exitCode != 0:
-            print("error running %s to %s." % (remoteCopyCmd, hostName))
+            _LOG.error("error running %s to %s.", remoteCopyCmd, hostName)
             sys.exit(exitCode)
 
         #
@@ -90,11 +92,10 @@ class PbsPlugin(Allocator):
             scratchDir,
             os.path.basename(generatedCondorConfigFile),
         )
-        if verbose:
-            print(cmd)
+        _LOG.debug(cmd)
         exitCode = self.runCommand(cmd, verbose)
         if exitCode != 0:
-            print("error running %s to %s." % (remoteCopyCmd, hostName))
+            _LOG.error("error running %s to %s.", remoteCopyCmd, hostName)
             sys.exit(exitCode)
 
         #
@@ -108,11 +109,10 @@ class PbsPlugin(Allocator):
             scratchDir,
             os.path.basename(generatedPbsFile),
         )
-        if verbose:
-            print(cmd)
+        _LOG.debug(cmd)
         exitCode = self.runCommand(cmd, verbose)
         if exitCode != 0:
-            print("error running %s to %s." % (remoteLoginCmd, hostName))
+            _LOG.error("error running %s to %s.", remoteLoginCmd, hostName)
             sys.exit(exitCode)
 
         self.printNodeSetInfo()
