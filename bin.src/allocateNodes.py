@@ -22,8 +22,10 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import logging
 import os
 import sys
+from typing import Any
 
 import lsst.utils
 from lsst.ctrl.execute import envString
@@ -31,11 +33,40 @@ from lsst.ctrl.execute.allocatorParser import AllocatorParser
 from lsst.ctrl.execute.condorConfig import CondorConfig
 from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
 
+_LOG = logging.getLogger("lsst.ctrl.execute")
+
+
+def setup_logging(options: dict[str, Any] | None = None) -> None:
+    """Configure logger.
+
+    Parameters
+    ----------
+    options : dict[str, Any]
+       Logger settings. The key/value pairs it contains will be used to
+       override corresponding default settings.  If empty or None (default),
+       logger will be set up with default settings.
+    """
+    settings = {
+        "datefmt": "%Y-%m-%dT%H:%M:%S%z",
+        "format": "%(levelname)s %(asctime)s %(name)s - %(message)s",
+        "level": logging.INFO,
+        "stream": sys.stderr,
+    }
+    if options is not None:
+        settings |= options
+    logging.basicConfig(**settings)
+
 
 def main():
     """Allocates Condor glide-in nodes a scheduler on a remote Node."""
 
     p = AllocatorParser(sys.argv[0])
+
+    options = {}
+    if p.args.verbose:
+        options = {"level": logging.DEBUG}
+    setup_logging(options)
+
     platform = p.getPlatform()
 
     # load the CondorConfig file

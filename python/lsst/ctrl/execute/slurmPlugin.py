@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 #
 # LSST Data Management System
 # Copyright 2008-2016 LSST Corporation.
@@ -23,6 +21,7 @@
 #
 
 import hashlib
+import logging
 import math
 import os
 import subprocess
@@ -33,6 +32,8 @@ from string import Template
 import htcondor
 from lsst.ctrl.bps.htcondor import condor_q
 from lsst.ctrl.execute.allocator import Allocator
+
+_LOG = logging.getLogger(__name__)
 
 
 class SlurmPlugin(Allocator):
@@ -54,12 +55,12 @@ class SlurmPlugin(Allocator):
                        The number of Slurm jobs detected via squeue.
         """
         batcmd = f"squeue --noheader --states={jobstates} --name={jobname} | wc -l"
-        print(f"The squeue command is {batcmd}")
+        _LOG.debug("The squeue command is %s", batcmd)
         time.sleep(3)
         try:
             resultPD = subprocess.check_output(batcmd, shell=True)
         except subprocess.CalledProcessError as e:
-            print(e.output)
+            _LOG.error(e.output)
         numberOfJobs = int(resultPD.decode("UTF-8"))
         return numberOfJobs
 
@@ -77,7 +78,7 @@ class SlurmPlugin(Allocator):
         numberOfJobs : `int`
                        The number of Slurm jobs detected via squeue.
         """
-        print(f"Checking if idle Slurm job {jobname} exists:")
+        _LOG.info("Checking if idle Slurm job %s exists:", jobname)
         numberOfJobs = SlurmPlugin.countSlurmJobs(jobname, jobstates="PD")
         return numberOfJobs
 
@@ -95,7 +96,7 @@ class SlurmPlugin(Allocator):
         numberOfJobs : `int`
                        The number of Slurm jobs detected via squeue.
         """
-        print(f"Checking if running Slurm job {jobname} exists:")
+        _LOG.info("Checking if running Slurm job %s exists:", jobname)
         numberOfJobs = SlurmPlugin.countSlurmJobs(jobname, jobstates="R")
         return numberOfJobs
 
@@ -135,9 +136,7 @@ class SlurmPlugin(Allocator):
         )
         self.createAllocationFile(allocationName)
 
-        verbose = self.isVerbose()
-        if verbose:
-            print("The generated Slurm submit file is %s " % generatedSlurmFile)
+        _LOG.debug("The generated Slurm submit file is %s", generatedSlurmFile)
 
         return generatedSlurmFile
 
@@ -170,18 +169,16 @@ class SlurmPlugin(Allocator):
         if not os.path.exists(slurmSubmitDir):
             os.mkdir(slurmSubmitDir)
         os.chdir(slurmSubmitDir)
-        if verbose:
-            print(
-                "The working local scratch directory localScratchDir is %s "
-                % localScratchDir
-            )
+        _LOG.debug(
+            "The working local scratch directory localScratchDir is %s ",
+            localScratchDir,
+        )
 
         auser = self.getUserName()
         jobname = f"glide_{auser}"
-        if verbose:
-            print("The unix user name is %s " % auser)
-            print("The Slurm job name for the glidein jobs is %s " % jobname)
-            print("The user home directory is %s " % self.getUserHome())
+        _LOG.debug("The unix user name is %s", auser)
+        _LOG.debug("The Slurm job name for the glidein jobs is %s", jobname)
+        _LOG.debug("The user home directory is %s", self.getUserHome())
 
         if auto:
             self.glideinsFromJobPressure(platformPkgDir)
@@ -201,30 +198,32 @@ class SlurmPlugin(Allocator):
             if targetedCores > coreLimit:
                 # Reduce number of nodes because of threshold
                 nodes = int(coreLimit / cpus)
-                print("Reducing number of glideins because of core limit threshold")
-                print(f"coreLimit {coreLimit}")
-                print(f"glidein size {cpus}")
-                print(f"New number of glideins {nodes}")
+                _LOG.info("Reducing number of glideins because of core limit threshold")
+                _LOG.debug("coreLimit %d", coreLimit)
+                _LOG.debug("glidein size %d", cpus)
+                _LOG.info("New number of glideins %d", nodes)
 
-            print("Targeting %s glidein(s) for the computing pool/set." % nodes)
+            _LOG.info("Targeting %d glidein(s) for the computing pool/set.", nodes)
             batcmd = "".join(["squeue --noheader --name=", jobname, " | wc -l"])
-            print("The squeue command is: %s " % batcmd)
+            _LOG.debug("The squeue command is: %s", batcmd)
             try:
                 result = subprocess.check_output(batcmd, shell=True)
             except subprocess.CalledProcessError as e:
-                print(e.output)
+                _LOG.error(e.output)
             strResult = result.decode("UTF-8")
 
-            print("Detected this number of preexisting glidein jobs: %s " % strResult)
+            _LOG.info(
+                "Detected this number of preexisting glidein jobs: %d", int(strResult)
+            )
 
             numberToAdd = nodes - int(strResult)
-            print("The number of glidein jobs to submit now is %s" % numberToAdd)
+            _LOG.info("The number of glidein jobs to submit now is %d", numberToAdd)
 
             for glide in range(0, numberToAdd):
-                print("Submitting glidein %s " % glide)
+                _LOG.info("Submitting glidein %d", glide)
                 exitCode = self.runCommand(cmd, verbose)
                 if exitCode != 0:
-                    print("error running %s" % cmd)
+                    _LOG.error("error running %s", cmd)
                     sys.exit(exitCode)
 
     def loadSlurm(self, name, platformPkgDir):
@@ -294,8 +293,7 @@ class SlurmPlugin(Allocator):
             The newly created file name
         """
         outfile = self.createFile(input, self.allocationFileName)
-        if self.opts.verbose:
-            print("Wrote new Slurm job allocation bash script to %s" % outfile)
+        _LOG.debug("Wrote new Slurm job allocation bash script to %s", outfile)
         os.chmod(outfile, 0o755)
         return outfile
 
@@ -337,9 +335,8 @@ class SlurmPlugin(Allocator):
         # The constraint determines that the jobs to be returned belong to
         # the current user (Owner) and are Idle vanilla universe jobs.
         full_constraint = f"{owner} && {jstat} && {juniv}"
-        print("Auto: Query for htcondor jobs.")
-        if verbose:
-            print(f"full_constraint {full_constraint}")
+        _LOG.info("Auto: Query for htcondor jobs.")
+        _LOG.debug("full_constraint %s", full_constraint)
         try:
             condorq_data = condor_q(
                 constraint=full_constraint,
@@ -350,7 +347,7 @@ class SlurmPlugin(Allocator):
             raise type(exc)("Problem querying condor schedd for jobs") from None
 
         if not condorq_data:
-            print("Auto: No HTCondor Jobs detected.")
+            _LOG.info("Auto: No HTCondor Jobs detected.")
             return
 
         generatedSlurmFile = self.createFilesFromTemplates(platformPkgDir)
@@ -358,32 +355,30 @@ class SlurmPlugin(Allocator):
         condorq_small = []
         schedd_name, condorq_full = condorq_data.popitem()
 
-        print("Auto: Search for Large htcondor jobs.")
+        _LOG.info("Auto: Search for Large htcondor jobs.")
         for jid, ajob in condorq_full.items():
             thisCpus = ajob["RequestCpus"]
             if isinstance(ajob["RequestMemory"], int):
                 thisEvalMemory = ajob["RequestMemory"]
             else:
                 thisEvalMemory = ajob["RequestMemory"].eval()
-                if verbose:
-                    print(f"Making an evaluation {thisEvalMemory}")
+                _LOG.debug("Making an evaluation %s", thisEvalMemory)
             # Search for jobs that are Large jobs
             # thisCpus > 16 or thisEvalMemory > 16*4096
             ajob["RequestMemoryEval"] = thisEvalMemory
             if thisEvalMemory > memoryLimit or thisCpus > autoCPUs:
-                print(f"Appending a Large Job {jid}")
+                _LOG.info("Appending a Large Job %s", jid)
                 condorq_large.append(ajob)
             else:
                 condorq_small.append(ajob)
 
         if not condorq_large:
-            print("Auto: no Large jobs detected.")
+            _LOG.info("Auto: no Large jobs detected.")
         else:
-            print("Auto: detected Large jobs")
+            _LOG.info("Auto: detected Large jobs")
             for ajob in condorq_large:
-                if verbose:
-                    print(f"\n{ajob['ClusterId']}.{ajob['ProcId']}")
-                    print(ajob)
+                _LOG.debug("\n%d.%d", ajob["ClusterId"], ajob["ProcId"])
+                _LOG.debug("%s", ajob)
                 thisMemory = ajob["RequestMemoryEval"]
                 useCores = ajob["RequestCpus"]
                 clusterid = ajob["ClusterId"]
@@ -394,42 +389,41 @@ class SlurmPlugin(Allocator):
                 hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
                 shash = hash[:6]
                 jobname = f"{auser}_{shash}"
-                if verbose:
-                    print(f"jobname {jobname}")
+                _LOG.debug("jobname %s", jobname)
                 # Check if Job exists Idle in the queue
                 numberJobname = SlurmPlugin.countIdleSlurmJobs(jobname)
                 if numberJobname > 0:
-                    print(f"Job {jobname} already exists, do not submit")
+                    _LOG.info("Job %s already exists, do not submit", jobname)
                     continue
                 cpuopt = f"--cpus-per-task {useCores}"
                 memopt = f"--mem {thisMemory}"
                 jobopt = f"-J {jobname}"
                 cmd = f"sbatch {cpuopt} {memopt} {jobopt} {generatedSlurmFile}"
-                if verbose:
-                    print(cmd)
-                print(
-                    f"Submitting Large glidein for {ajob['ClusterId']}.{ajob['ProcId']}"
+                _LOG.debug(cmd)
+                _LOG.info(
+                    "Submitting Large glidein for %d.%d",
+                    ajob["ClusterId"],
+                    ajob["ProcId"],
                 )
                 time.sleep(3)
                 exitCode = self.runCommand(cmd, verbose)
                 if exitCode != 0:
-                    print("error running %s" % cmd)
+                    _LOG.error("error running %s", cmd)
                     sys.exit(exitCode)
 
         if not condorq_small:
-            print("Auto: no small Jobs detected.")
+            _LOG.info("Auto: no small Jobs detected.")
         else:
-            print("Auto: summarize small jobs.")
+            _LOG.info("Auto: summarize small jobs.")
             maxNumberOfGlideins = self.getNodes()
             maxAllowedNumberOfGlideins = self.getAllowedAutoGlideins()
-            if verbose:
-                print(f"maxNumberOfGlideins {maxNumberOfGlideins}")
-                print(f"maxAllowedNumberOfGlideins {maxAllowedNumberOfGlideins}")
+            _LOG.debug("maxNumberOfGlideins %d", maxNumberOfGlideins)
+            _LOG.debug("maxAllowedNumberOfGlideins %d", maxAllowedNumberOfGlideins)
             # The number of cores for the small glideins is capped at 8000
             # Corresponds to maxAllowedNumberOfGlideins = 500 16-core glideins
             if maxNumberOfGlideins > maxAllowedNumberOfGlideins:
                 maxNumberOfGlideins = maxAllowedNumberOfGlideins
-                print("Reducing Small Glidein limit due to threshold.")
+                _LOG.info("Reducing Small Glidein limit due to threshold.")
             #
             # In the following loop we calculate the number of cores
             # required by the set of small jobs. This calculation utilizes
@@ -442,30 +436,27 @@ class SlurmPlugin(Allocator):
                 # if isinstance(ajob["RequestMemory"], int):
                 #     requestedMemory = ajob["RequestMemory"]
                 # else:
-                #   requestedMemory = ajob["RequestMemoryEval"]
-                #    print("Using RequestMemoryEval")
+                #     requestedMemory = ajob["RequestMemoryEval"]
+                #     logging.debug("Using RequestMemoryEval")
                 requestedMemory = ajob["RequestMemoryEval"]
                 totalCores = totalCores + requestedCpus
-                if verbose:
-                    print(f"small: jobid {ajob['ClusterId']}.{ajob['ProcId']}")
-                    print(f"\tRequestCpus {requestedCpus}")
-                    print(f"\tCurrent value of totalCores {totalCores}")
+                _LOG.debug("small: jobid %d.%d", ajob["ClusterId"], ajob["ProcId"])
+                _LOG.debug("\tRequestCpus %d", requestedCpus)
+                _LOG.debug("\tCurrent value of totalCores %d", totalCores)
                 neededCpus = requestedMemory / memoryPerCore
                 if neededCpus > requestedCpus:
-                    if verbose:
-                        print("\t\tNeed to Add More:")
-                        print(f"\t\tRequestMemory is {requestedMemory} ")
-                        print(f"\t\tRatio to {memoryPerCore} MB is {neededCpus}")
+                    _LOG.debug("\t\tNeed to Add More:")
+                    _LOG.debug("\t\tRequestMemory is %d", requestedMemory)
+                    _LOG.debug("\t\tRatio to %d MB is %d", memoryPerCore, neededCpus)
                     totalCores = totalCores + (neededCpus - requestedCpus)
-                    if verbose:
-                        print(f"\t\tCurrent value of totalCores {totalCores}")
+                    _LOG.debug("\t\tCurrent value of totalCores %d", totalCores)
 
-            print(f"small: The final TotalCores is {totalCores}")
+            _LOG.info("small: The final TotalCores is %d", totalCores)
 
             # The number of Glideins needed to service the detected Idle jobs
             # is "numberOfGlideins"
             numberOfGlideins = math.ceil(totalCores / autoCPUs)
-            print(f"small: Number for detected jobs is {numberOfGlideins}")
+            _LOG.info("small: Number for detected jobs is %d", numberOfGlideins)
 
             jobname = f"glide_{auser}"
 
@@ -475,45 +466,40 @@ class SlurmPlugin(Allocator):
             # Check Slurm queue Idle Glideins
             existingGlideinsIdle = SlurmPlugin.countIdleSlurmJobs(jobname)
 
-            if verbose:
-                print(f"small: existingGlideinsRunning {existingGlideinsRunning}")
-                print(f"small: existingGlideinsIdle {existingGlideinsIdle}")
+            _LOG.debug("small: existingGlideinsRunning %d", existingGlideinsRunning)
+            _LOG.debug("small: existingGlideinsIdle %d", existingGlideinsIdle)
 
             # The number of Glideins needed to service the detected
             # Idle jobs is "numberOfGlideins" less the existing Idle glideins
             numberOfGlideinsReduced = numberOfGlideins - existingGlideinsIdle
-            if verbose:
-                print(f"small: Target Number to submit {numberOfGlideinsReduced}")
+            _LOG.debug("small: Target Number to submit %d", numberOfGlideinsReduced)
 
             # The maximum number of Glideins that we can submit with
             # the imposed threshold (maxNumberOfGlideins)
             # is maxSubmitGlideins
             existingGlideins = existingGlideinsRunning + existingGlideinsIdle
             maxSubmitGlideins = maxNumberOfGlideins - existingGlideins
-            if verbose:
-                print(f"small: maxNumberOfGlideins {maxNumberOfGlideins}")
-                print(f"small: maxSubmitGlideins {maxSubmitGlideins}")
+            _LOG.debug("small: maxNumberOfGlideins %d", maxNumberOfGlideins)
+            _LOG.debug("small: maxSubmitGlideins %d", maxSubmitGlideins)
 
             # Reduce the number of Glideins to submit if threshold exceeded
             if numberOfGlideinsReduced > maxSubmitGlideins:
                 numberOfGlideinsReduced = maxSubmitGlideins
-                print("small: Reducing due to threshold.")
-            if verbose:
-                print(
-                    f"small: Number of Glideins to submit is {numberOfGlideinsReduced}"
-                )
+                _LOG.info("small: Reducing due to threshold.")
+            _LOG.debug(
+                "small: Number of Glideins to submit is %d", numberOfGlideinsReduced
+            )
 
             cpuopt = f"--cpus-per-task {autoCPUs}"
             memopt = f"--mem {memoryLimit}"
             jobopt = f"-J {jobname}"
             cmd = f"sbatch {cpuopt} {memopt} {jobopt} {generatedSlurmFile}"
-            if verbose:
-                print(cmd)
+            _LOG.debug(cmd)
             for glide in range(0, numberOfGlideinsReduced):
-                print("Submitting glidein %s " % glide)
+                _LOG.info("Submitting glidein %s", glide)
                 exitCode = self.runCommand(cmd, verbose)
                 if exitCode != 0:
-                    print("error running %s" % cmd)
+                    _LOG.error("error running %s", cmd)
                     sys.exit(exitCode)
 
         return
