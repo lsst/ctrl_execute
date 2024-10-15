@@ -252,6 +252,11 @@ class SlurmPlugin(Allocator):
             self.allocationFileName
         )
 
+        if self.opts.openfiles is None:
+            self.defaults["OPEN_FILES"] = 8192
+        else:
+            self.defaults["OPEN_FILES"] = self.opts.openfiles
+
         # For partitionable slots the classad 'Cpus' shows how many cpus
         # remain to be allocated. Thus for a slot running jobs the value
         # of Rank of TotalCpus - Cpus will increase with the load.
