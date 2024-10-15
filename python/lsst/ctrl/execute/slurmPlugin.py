@@ -253,7 +253,7 @@ class SlurmPlugin(Allocator):
         )
 
         if self.opts.openfiles is None:
-            self.defaults["OPEN_FILES"] = 8192
+            self.defaults["OPEN_FILES"] = 20480
         else:
             self.defaults["OPEN_FILES"] = self.opts.openfiles
 

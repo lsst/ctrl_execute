@@ -153,7 +153,7 @@ class AllocatorParser:
             action="store",
             dest="openfiles",
             type=int,
-            default=8192,
+            default=20480,
             help="set the limit on number of open files (fd) per process",
         )
         parser.add_argument(
