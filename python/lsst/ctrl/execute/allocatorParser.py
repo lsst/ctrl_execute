@@ -149,6 +149,14 @@ class AllocatorParser:
             help="glide-in inactivity shutdown time in seconds",
         )
         parser.add_argument(
+            "--openfiles",
+            action="store",
+            dest="openfiles",
+            type=int,
+            default=20480,
+            help="set the limit on number of open files (fd) per process",
+        )
+        parser.add_argument(
             "-p",
             "--pack",
             action="store_true",
