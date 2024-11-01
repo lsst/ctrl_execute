@@ -99,6 +99,7 @@ class Allocator:
         self.defaults["USER_SCRATCH"] = user_scratch
         self.commandLineDefaults = {}
         self.commandLineDefaults["NODE_COUNT"] = self.opts.nodeCount
+        self.commandLineDefaults["COLLECTOR"] = self.opts.collector
         self.commandLineDefaults["CPUS"] = self.opts.cpus
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
