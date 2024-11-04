@@ -100,6 +100,7 @@ class Allocator:
         self.commandLineDefaults = {}
         self.commandLineDefaults["NODE_COUNT"] = self.opts.nodeCount
         self.commandLineDefaults["COLLECTOR"] = self.opts.collector
+        self.commandLineDefaults["COLLECTORPORT"] = self.opts.collectorport
         self.commandLineDefaults["CPUS"] = self.opts.cpus
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
