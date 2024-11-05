@@ -97,6 +97,24 @@ class AllocatorParser:
             type=str,
         )
         parser.add_argument(
+            "--collector",
+            action="store",
+            default=None,
+            dest="collector",
+            help="machine name of nondefault htcondor collector",
+            type=str,
+            required=False,
+        )
+        parser.add_argument(
+            "--collector-port",
+            action="store",
+            default=9618,
+            dest="collectorport",
+            help="port used for nondefault htcondor collector",
+            type=int,
+            required=False,
+        )
+        parser.add_argument(
             "-s",
             "--qos",
             action="store",
