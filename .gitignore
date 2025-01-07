@@ -11,3 +11,4 @@ bin/allocateNodes.py
 bin/dagIdInfo.py
 bin/qdelete.py
 bin/qstatus.py
+python/*.dist-info/
