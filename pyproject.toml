@@ -1,0 +1,54 @@
+[project]
+name = "lsst-ctrl-execute"
+requires-python = ">=3.11.0,<3.13.0"
+description = "Utilities for executing and managing workloads."
+license = {text = "BSD 3-Clause License"}
+authors = [
+    {name="Rubin Observatory Data Management", email="dm-admin@lists.lsst.org"},
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+keywords = ["lsst"]
+dependencies = [
+    "lsst-ctrl-bps-htcondor>=28.2024.5000; sys_platform == 'linux'",
+    "lsst-pex-config",
+    "lsst-utils",
+]
+dynamic = ["version"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.0.1",
+    "pytest",
+    "pytest-xdist",
+    "pytest-cov",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/lsst/ctrl_execute"
+
+[project.scripts]
+allocate_nodes = "bin.allocateNodes:main"
+
+[build-system]
+requires = ["hatchling", "lsst-versions >= 1.6.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "lsst"
+
+[tool.hatch.build.targets.wheel]
+packages = ["python/lsst"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"./bin.src" = "bin"
+
+[tool.lsst_versions]
+write_to = "python/lsst/ctrl/execute/version.py"
