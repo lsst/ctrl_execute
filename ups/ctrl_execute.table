@@ -1,6 +1,7 @@
 setupRequired(pex_config)
 setupRequired(utils)
 setupRequired(ctrl_bps_htcondor)
+setupRequired(resources)
 
 envPrepend(PYTHONPATH, ${PRODUCT_DIR}/python)
 envPrepend(PATH, ${PRODUCT_DIR}/bin)
