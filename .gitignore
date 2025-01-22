@@ -227,3 +227,8 @@ cython_debug/
 # Scons
 .sconsign.dblite
 .sconf_temp
+.tests/tests
+bin/*
+python/*.dist-info
+config.log
+_build.*

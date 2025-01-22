@@ -26,7 +26,8 @@ import sys
 
 from lsst.ctrl.execute.qCommand import QCommand
 
-if __name__ == "__main__":
+
+def main():
     platform = sys.argv[1]
     jobId = sys.argv[2]
 
@@ -41,3 +42,7 @@ if __name__ == "__main__":
     )
     exitCode = cmd.runCommand(command)
     sys.exit(exitCode)
+
+
+if __name__ == "__main__":
+    main()

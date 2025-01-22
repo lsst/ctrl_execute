@@ -35,7 +35,10 @@ dev = [
 "Homepage" = "https://github.com/lsst/ctrl_execute"
 
 [project.scripts]
-allocate_nodes = "bin.allocateNodes:main"
+"allocateNodes.py" = "lsst.ctrl.execute.libexec.allocateNodes:main"
+"dagIdInfo.py" = "lsst.ctrl.execute.libexec.dagIdInfo:main"
+"qdelete.py" = "lsst.ctrl.execute.libexec.qdelete:main"
+"qstatus.py" = "lsst.ctrl.execute.libexec.qstatus:main"
 
 [build-system]
 requires = ["hatchling", "lsst-versions >= 1.6.0"]
@@ -46,9 +49,6 @@ source = "lsst"
 
 [tool.hatch.build.targets.wheel]
 packages = ["python/lsst"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"./bin.src" = "bin"
 
 [tool.lsst_versions]
 write_to = "python/lsst/ctrl/execute/version.py"
