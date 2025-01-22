@@ -33,6 +33,7 @@ from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
 from lsst.ctrl.execute.templateWriter import TemplateWriter
+from lsst.resources import ResourcePath
 
 _LOG = logging.getLogger(__name__)
 
@@ -48,11 +49,18 @@ class Allocator:
         the name of the platform to execute on
     opts : `Config`
         Config object containing options
-    condorInfoFileName : `str`
+    condorInfoFileName : `str | lsst.resources.ResourcePath`
         Name of the file containing Config information
+
+    Raises
+    ------
+    TypeError
+        If the condorInfoFileName is the wrong type.
     """
 
-    def __init__(self, platform, opts, configuration, condorInfoFileName):
+    def __init__(
+        self, platform: str, opts, configuration, condorInfoFileName: str | ResourcePath
+    ):
         """Constructor
         @param platform: target platform for PBS submission
         @param opts: options to override
@@ -61,9 +69,14 @@ class Allocator:
         self.defaults = {}
         self.configuration = configuration
 
-        fileName = envString.resolve(condorInfoFileName)
         condorInfoConfig = CondorInfoConfig()
-        condorInfoConfig.load(fileName)
+        if isinstance(condorInfoFileName, str):
+            fileName = envString.resolve(condorInfoFileName)
+            condorInfoConfig.load(fileName)
+        elif isinstance(condorInfoFileName, ResourcePath):
+            condorInfoConfig.loadFromStream(condorInfoFileName.read())
+        else:
+            raise TypeError("Wrong type of condor info file provided to allocator.")
 
         self.platform = platform
 
@@ -152,15 +165,18 @@ class Allocator:
         )
         self.defaults["SCHEDULER"] = self.configuration.platform.scheduler
 
-    def loadAllocationConfig(self, name, suffix):
+    def loadAllocationConfig(self, name: str | ResourcePath, suffix):
         """Loads all values from allocationConfig and command line overrides
         into data structures suitable for use by the TemplateWriter object.
         """
-        resolvedName = envString.resolve(name)
         allocationConfig = AllocationConfig()
-        if not os.path.exists(resolvedName):
-            raise RuntimeError("%s was not found." % resolvedName)
-        allocationConfig.load(resolvedName)
+        if isinstance(name, str):
+            resolvedName = envString.resolve(name)
+            if not os.path.exists(resolvedName):
+                raise RuntimeError("%s was not found." % resolvedName)
+            allocationConfig.load(resolvedName)
+        elif isinstance(name, ResourcePath):
+            allocationConfig.loadFromStream(name.read())
 
         self.defaults["QUEUE"] = allocationConfig.platform.queue
         self.defaults["EMAIL_NOTIFICATION"] = allocationConfig.platform.email
@@ -460,3 +476,7 @@ class Allocator:
         # high order bits are status, low order bits are signal.
         exitCode = (status & 0xFF00) >> 8
         return exitCode
+
+    def submit(self):
+        """Submit the glidein jobs to the Batch system."""
+        raise NotImplementedError

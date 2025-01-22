@@ -23,14 +23,13 @@
 #
 
 import logging
-import os
 import sys
 from typing import Any
 
-import lsst.utils
-from lsst.ctrl.execute import envString
+from lsst.ctrl.execute.allocator import Allocator
 from lsst.ctrl.execute.allocatorParser import AllocatorParser
 from lsst.ctrl.execute.condorConfig import CondorConfig
+from lsst.ctrl.execute.findPackageFile import find_package_file
 from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
 
 _LOG = logging.getLogger("lsst.ctrl.execute")
@@ -70,12 +69,9 @@ def main():
     platform = p.getPlatform()
 
     # load the CondorConfig file
-    platformPkgDir = lsst.utils.getPackageDir("ctrl_platform_" + platform)
-    execConfigName = os.path.join(platformPkgDir, "etc", "config", "execConfig.py")
-
-    resolvedName = envString.resolve(execConfigName)
+    execConfigName = find_package_file("execConfig.py", platform=platform)
     configuration = CondorConfig()
-    configuration.load(resolvedName)
+    configuration.loadFromStream(execConfigName.read())
 
     # create the plugin class
     schedulerName = configuration.platform.scheduler
@@ -84,12 +80,13 @@ def main():
     )
 
     # create the plugin
-    scheduler = schedulerClass(
-        platform, p.getArgs(), configuration, "$HOME/.lsst/condor-info.py"
+    condor_info_file = find_package_file("condor-info.py", platform=platform)
+    scheduler: Allocator = schedulerClass(
+        platform, p.getArgs(), configuration, condor_info_file
     )
 
     # submit the request
-    scheduler.submit(platform, platformPkgDir)
+    scheduler.submit()
 
 
 if __name__ == "__main__":

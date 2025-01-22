@@ -24,23 +24,33 @@
 
 import os
 import re
-import sys
-
-# Given a string, look for any $ prefixed word, attempt to substitute
-# an environment variable with that name.
-# @throw exception if the environment variable doesn't exist
-# @return the resulting string
 
 
-def resolve(strVal):
+def resolve(input: str) -> str:
+    """Render a string with any `$`-prefixed words substituted with a matching
+    environment variable.
+
+    FIXME: this reimplements the `os.path.expandvars()` function with the
+           exception of raising errors on unresolved variables.
+
+    Parameters
+    ----------
+    input : str | lsst.resources.ResourcePath
+        The string or object that can be cast as a string containing
+        environment variables to resolve.
+
+    Raises
+    ------
+    RuntimeError
+        If the environment variable does not exist
+    """
     p = re.compile(r"\$[a-zA-Z0-9_]+")
-    retVal = strVal
+    retVal = input
     exprs = p.findall(retVal)
     for i in exprs:
         var = i[1:]
         val = os.getenv(var, None)
         if val is None:
             raise RuntimeError("couldn't find environment variable " + i)
-            sys.exit(120)
         retVal = p.sub(val, retVal, 1)
     return retVal
