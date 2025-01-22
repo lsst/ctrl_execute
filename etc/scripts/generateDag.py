@@ -35,7 +35,6 @@ def _line_to_args(self, line):
 
 
 def makeArgumentParser(description, inRootsRequired=True, addRegistryOption=True):
-
     parser = argparse.ArgumentParser(
         description=description,
         fromfile_prefix_chars="@",

@@ -37,7 +37,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class SlurmPlugin(Allocator):
-
     @staticmethod
     def countSlurmJobs(jobname, jobstates):
         """Check Slurm queue for Glideins of given states

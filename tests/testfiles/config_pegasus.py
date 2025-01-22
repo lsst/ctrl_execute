@@ -1,3 +1,4 @@
+# flake8: noqa
 config.platform.nodeSetRequired = True
 config.platform.localScratch = "/mount1/scratch"
 config.platform.defaultRoot = "/mount2/condor_work"
