@@ -22,6 +22,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 import os
+import sys
 from pathlib import Path
 
 import lsst.utils
@@ -63,6 +64,8 @@ def find_package_file(
     - An ``lsst`` directory in the user's ``$XDG_CONFIG_HOME`` directory
     - An ``etc/{kind}`` directory in the EUPS stack environment for the
       platform.
+    - An ``etc/{kind}`` directory in the current Python environment/venv shared
+      data directory.
     - An ``etc/{kind}`` directory in an installed ``lsst.ctrl.platform.*``
       package.
     - An ``etc/{kind}`` directory in the ``lsst.ctrl.execute`` package.
@@ -82,13 +85,14 @@ def find_package_file(
         platform_pkg_dir = None
 
     file_candidates = [
-        ResourcePath(f"file://{home_dir}/.lsst/{_filename}"),
-        ResourcePath(f"file://{xdg_config_home}/lsst/{_filename}"),
+        ResourcePath(home_dir).join(f".lsst/{_filename}"),
+        ResourcePath(xdg_config_home).join(f"lsst/{_filename}"),
         (
-            ResourcePath(f"file://{platform_pkg_dir}/etc/{kind}/{_filename}")
+            ResourcePath(platform_pkg_dir).join(f"etc/{kind}/{_filename}")
             if platform_pkg_dir
             else None
         ),
+        ResourcePath(sys.exec_prefix).join(f"etc/{kind}/{_filename}"),
         (
             ResourcePath(
                 f"resource://lsst.ctrl.platform.{platform}/etc/{kind}/{_filename}"
