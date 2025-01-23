@@ -23,10 +23,8 @@
 #
 import os
 import sys
-from pathlib import Path
 
 import lsst.utils
-from lsst.ctrl.execute.envString import resolve
 from lsst.resources import ResourcePath
 
 
@@ -70,12 +68,10 @@ def find_package_file(
       package.
     - An ``etc/{kind}`` directory in the ``lsst.ctrl.execute`` package.
     """
-    _filename = resolve(filename)
-
     # If the path, after expansion, is absolute, we don't need to go looking
     # for it, it should be exactly where it is.
-    if Path(_filename).is_absolute():
-        return ResourcePath(_filename)
+    if (_filename := ResourcePath(filename, forceAbsolute=False)).isabs():
+        return _filename
 
     home_dir = os.getenv("HOME", "~")
     xdg_config_home = os.getenv("XDG_CONFIG_HOME", "~/.config")
@@ -85,14 +81,14 @@ def find_package_file(
         platform_pkg_dir = None
 
     file_candidates = [
-        ResourcePath(home_dir).join(f".lsst/{_filename}"),
-        ResourcePath(xdg_config_home).join(f"lsst/{_filename}"),
+        ResourcePath(home_dir).join(".lsst").join(_filename),
+        ResourcePath(xdg_config_home).join("lsst").join(_filename),
         (
-            ResourcePath(platform_pkg_dir).join(f"etc/{kind}/{_filename}")
+            ResourcePath(platform_pkg_dir).join("etc").join(kind).join(_filename)
             if platform_pkg_dir
             else None
         ),
-        ResourcePath(sys.exec_prefix).join(f"etc/{kind}/{_filename}"),
+        ResourcePath(sys.exec_prefix).join("etc").join(kind).join(_filename),
         (
             ResourcePath(
                 f"resource://lsst.ctrl.platform.{platform}/etc/{kind}/{_filename}"
