@@ -26,5 +26,5 @@ def test_find_package_file(tmp_path, monkeypatch):
     assert "home/pytest/.config/lsst" in str(f2)
 
     # f3 should not be found at all
-    with pytest.raises(IndexError):
+    with pytest.raises(FileNotFoundError):
         _ = find_package_file("test_file_3.py")

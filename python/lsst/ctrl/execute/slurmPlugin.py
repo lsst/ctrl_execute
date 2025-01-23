@@ -259,13 +259,12 @@ class SlurmPlugin(Allocator):
             self.defaults["DYNAMIC_SLOTS_BLOCK"] = "#"
             return
 
-        dynamicSlotsName: Path | ResourcePath
         if self.opts.dynamic == "__default__":
             dynamicSlotsName = find_package_file(
                 "dynamic_slots.template", kind="templates", platform=self.platform
             )
         else:
-            dynamicSlotsName = Path(self.opts.dynamic)
+            dynamicSlotsName = ResourcePath(self.opts.dynamic)
 
         with dynamicSlotsName.open() as f:
             lines = f.readlines()

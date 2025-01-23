@@ -41,8 +41,8 @@ def main():
         jobId,
     )
     exitCode = cmd.runCommand(command)
-    sys.exit(exitCode)
+    return exitCode
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

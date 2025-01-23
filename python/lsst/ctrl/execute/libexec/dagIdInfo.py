@@ -32,32 +32,29 @@ import sys
 def main():
     if len(sys.argv) != 3:
         print("usage:  %s dagNodeName filename" % os.path.basename(sys.argv[0]))
-        sys.exit(errno.EINVAL)
+        return errno.EINVAL
 
     dagNode = sys.argv[1]
     filename = sys.argv[2]
 
     if not os.path.exists(filename):
         print("file %s not found" % filename)
-        sys.exit(errno.ENOENT)
+        return errno.ENOENT
 
     ex = r"VARS %s var1=\"(?P<idlist>.+?)\"" % dagNode
-    file = open(filename)
-    for line in file:
-        line = line.rstrip(" \n")
+    with open(filename) as file:
+        for line in file:
+            line = line.rstrip(" \n")
 
-        # look for the line with the dagnode name in it
-        # and extract everything after "var1", but not the quotes
-        values = re.search(ex, line)
-        if values is None:
-            continue
-        ids = values.groupdict()["idlist"]
-        file.close()
-        print(ids)
-        sys.exit(0)
-    file.close()
-    sys.exit(0)
+            # look for the line with the dagnode name in it
+            # and extract everything after "var1", but not the quotes
+            values = re.search(ex, line)
+            if values is None:
+                continue
+            ids = values.groupdict()["idlist"]
+            print(ids)
+            break
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

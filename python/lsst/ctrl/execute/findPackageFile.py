@@ -22,6 +22,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 import os
+from pathlib import Path
 
 import lsst.utils
 from lsst.ctrl.execute.envString import resolve
@@ -29,25 +30,52 @@ from lsst.resources import ResourcePath
 
 
 def find_package_file(
-    filename: str, kind: str = "config", platform: str = "s3df"
+    filename: str, kind: str = "config", platform: str | None = None
 ) -> ResourcePath:
     """Find a package file from a set of candidate locations.
 
-    The candidate locations are, in descending order of preference:
-    - An `.lsst` directory in the user's home directory.
-    - An `lsst` directory in the user's `$XDG_CONFIG_HOME` directory
-    - An `etc/{kind}` directory in the stack environment for the platform
-    - An `etc/{kind}` directory in an installed `lsst.ctrl.platform.*` package
-    - An `etc/{kind}` directory in the `lsst.ctrl.execute` package.
+    Parameters
+    ----------
+    filename : `str`
+        The unqualified name of a file to locate.
+
+    kind : `str`
+        The name of a subdirectory in which to look for the file within a
+        package location, relative to an ``etc/`` directory.
+
+    platform : `str` | `None`
+        The name of a platform plugin in which to look for the file, or `None`
+        if no platform plugin should be searched.
+
+    Returns
+    -------
+    `lsst.resources.ResourcePath`
 
     Raises
     ------
-    IndexError
+    FileNotFoundError
         If a requested file object cannot be located in the candidate hierarchy
+
+    Notes
+    -----
+    The candidate locations are, in descending order of preference:
+    - An ``.lsst`` directory in the user's home directory.
+    - An ``lsst`` directory in the user's ``$XDG_CONFIG_HOME`` directory
+    - An ``etc/{kind}`` directory in the EUPS stack environment for the
+      platform.
+    - An ``etc/{kind}`` directory in an installed ``lsst.ctrl.platform.*``
+      package.
+    - An ``etc/{kind}`` directory in the ``lsst.ctrl.execute`` package.
     """
     _filename = resolve(filename)
-    home_dir = os.getenv("HOME", "/")
-    xdg_config_home = os.getenv("XDG_CONFIG_HOME", f"{home_dir}/.config")
+
+    # If the path, after expansion, is absolute, we don't need to go looking
+    # for it, it should be exactly where it is.
+    if Path(_filename).is_absolute():
+        return ResourcePath(_filename)
+
+    home_dir = os.getenv("HOME", "~")
+    xdg_config_home = os.getenv("XDG_CONFIG_HOME", "~/.config")
     try:
         platform_pkg_dir = lsst.utils.getPackageDir(f"ctrl_platform_{platform}")
     except (LookupError, ValueError):
@@ -61,8 +89,12 @@ def find_package_file(
             if platform_pkg_dir
             else None
         ),
-        ResourcePath(
-            f"resource://lsst.ctrl.platform.{platform}/etc/{kind}/{_filename}"
+        (
+            ResourcePath(
+                f"resource://lsst.ctrl.platform.{platform}/etc/{kind}/{_filename}"
+            )
+            if platform
+            else None
         ),
         ResourcePath(f"resource://lsst.ctrl.execute/etc/{kind}/{_filename}"),
     ]
@@ -71,5 +103,5 @@ def find_package_file(
             c for c in file_candidates if c is not None and c.exists()
         ][0]
     except IndexError:
-        raise
+        raise FileNotFoundError(f"No file {filename} found in package file lookup")
     return found_file
