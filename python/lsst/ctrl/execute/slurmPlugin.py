@@ -34,7 +34,7 @@ import htcondor
 from lsst.ctrl.bps.htcondor import condor_q
 from lsst.ctrl.execute.allocator import Allocator
 from lsst.ctrl.execute.findPackageFile import find_package_file
-from lsst.resources import ResourcePath
+from lsst.resources import ResourcePath, ResourcePathExpression
 
 _LOG = logging.getLogger(__name__)
 
@@ -273,7 +273,7 @@ class SlurmPlugin(Allocator):
                 block += line
             self.defaults["DYNAMIC_SLOTS_BLOCK"] = block
 
-    def createAllocationFile(self, input):
+    def createAllocationFile(self, input: ResourcePathExpression):
         """Creates Allocation script file using the file "input" as a Template
 
         Returns

@@ -29,7 +29,6 @@ import sys
 from datetime import datetime
 from string import Template
 
-from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
 from lsst.ctrl.execute.templateWriter import TemplateWriter
@@ -251,7 +250,7 @@ class Allocator:
         _LOG.debug("Wrote new condor configuration file to %s", outfile)
         return outfile
 
-    def createFile(self, input, output):
+    def createFile(self, input: ResourcePathExpression, output: ResourcePathExpression):
         """Creates a new file, using "input" as a Template, and writes the
         new file to output.
 
@@ -260,8 +259,7 @@ class Allocator:
         outfile : `str`
             The newly created file name
         """
-        resolvedInputName = envString.resolve(input)
-        _LOG.debug("Creating file from template using %s", resolvedInputName)
+        _LOG.debug("Creating file from template using %s", input)
         template = TemplateWriter()
         # Uses the associative arrays of "defaults" and "commandLineDefaults"
         # to write out the new file from the template.
@@ -271,7 +269,7 @@ class Allocator:
             val = self.commandLineDefaults[key]
             if val is not None:
                 substitutes[key] = self.commandLineDefaults[key]
-        template.rewrite(resolvedInputName, output, substitutes)
+        template.rewrite(input, output, substitutes)
         return output
 
     def isVerbose(self):
