@@ -21,27 +21,27 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import os.path
-
-from lsst.ctrl.execute import envString
+from lsst.resources import ResourcePath, ResourcePathExpression
 
 
 class SeqFile:
     """Class which can read and increment files used to store sequence
     numbers"""
 
-    def __init__(self, seqFileName):
+    filename: ResourcePath
+
+    def __init__(self, seqFileName: ResourcePathExpression):
         """Constructor
         @param seqFileName file name to operate on
         """
-        self.fileName = envString.resolve(seqFileName)
+        self.fileName = ResourcePath(seqFileName)
 
     def nextSeq(self):
         """Produce the next sequence number.
         @return a sequence number
         """
         seq = 0
-        if not os.path.exists(self.fileName):
+        if not self.fileName.exists():
             self.writeSeq(seq)
         else:
             seq = self.readSeq()
@@ -53,14 +53,12 @@ class SeqFile:
         """Read a sequence number
         @return a sequence number
         """
-        with open(self.fileName) as seqFile:
-            line = seqFile.read()
+        with self.fileName.open(mode="r") as seqFile:
+            line = seqFile.readline()
             seq = int(line)
-        seqFile.close()
         return seq
 
     def writeSeq(self, seq):
         """Write a sequence number"""
-        with open(self.fileName, "w") as seqFile:
+        with self.fileName.open(mode="w") as seqFile:
             print(seq, file=seqFile)
-        seqFile.close()

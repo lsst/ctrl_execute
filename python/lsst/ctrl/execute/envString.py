@@ -29,6 +29,11 @@ def resolve(input: str) -> str:
     """Render a string with any `$`-prefixed words substituted with a matching
     environment variable.
 
+    .. deprecated:: w.2025.05
+        `lsst.ctrl.execute.envString.resolve` is deprecated and no longer used
+        by any internal APIs because `lsst.resource.ResourcePath` handles
+        environment variable expansion.
+
     Parameters
     ----------
     input : `str`

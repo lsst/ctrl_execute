@@ -23,33 +23,30 @@
 import os
 import os.path
 
-import lsst.utils
-from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
+from lsst.ctrl.execute.findPackageFile import find_package_file
 
 
 class QCommand:
     """A class which wraps qsub-style commands for execution"""
 
-    def __init__(self, platform):
+    def __init__(self, platform: str):
         # can handle both grid-proxy and ssh logins
         self.remoteLoginCmd = "/usr/bin/gsissh"
 
         # can handle both grid-proxy and ssh copies
         self.remoteCopyCmd = "/usr/bin/gsiscp"
 
-        configFileName = "$HOME/.lsst/condor-info.py"
-        fileName = envString.resolve(configFileName)
+        configFileName = find_package_file("condor-info.py")
 
         condorInfoConfig = CondorInfoConfig()
-        condorInfoConfig.load(fileName)
+        condorInfoConfig.loadFromStream(configFileName.read())
 
-        platformPkgDir = lsst.utils.getPackageDir("ctrl_platform_" + platform)
-        configName = os.path.join(platformPkgDir, "etc", "config", "pbsConfig.py")
+        configName = find_package_file("pbsConfig.py", platform=platform)
 
         allocationConfig = AllocationConfig()
-        allocationConfig.load(configName)
+        allocationConfig.loadFromStream(configName.read())
 
         self.userName = condorInfoConfig.platform[platform].user.name
 

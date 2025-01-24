@@ -50,6 +50,3 @@ source = "lsst"
 
 [tool.hatch.build.targets.wheel]
 packages = ["python/lsst"]
-
-[tool.lsst_versions]
-write_to = "python/lsst/ctrl/execute/version.py"
