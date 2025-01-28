@@ -1,7 +1,7 @@
 CONFIG S2012Pipe.config
 JOB A workers/S2012Pipe.pre
 JOB B workers/S2012Pipe.post
- 
+
 JOB A1 workers/S2012Pipeline-template.condor
 JOB A2 workers/S2012Pipeline-template.condor
 JOB A3 workers/S2012Pipeline-template.condor
@@ -19,123 +19,123 @@ JOB A14 workers/S2012Pipeline-template.condor
 JOB A15 workers/S2012Pipeline-template.condor
 JOB A16 workers/S2012Pipeline-template.condor
 JOB A17 workers/S2012Pipeline-template.condor
- 
-VARS A1 var1="run=1033 filter=r camcol=2 field=229" 
-VARS A1 var2="1" 
-VARS A1 visit="0" 
-VARS A1 runid="srp_2013_0206_100625" 
-VARS A1 workerid="1" 
-VARS A2 var1="run=1033 filter=i camcol=2 field=94" 
-VARS A2 var2="2" 
-VARS A2 visit="0" 
-VARS A2 runid="srp_2013_0206_100625" 
-VARS A2 workerid="2" 
-VARS A3 var1="run=1033 filter=i camcol=2 field=47" 
-VARS A3 var2="3" 
-VARS A3 visit="0" 
-VARS A3 runid="srp_2013_0206_100625" 
-VARS A3 workerid="3" 
-VARS A4 var1="run=1033 filter=r camcol=2 field=101" 
-VARS A4 var2="4" 
-VARS A4 visit="0" 
-VARS A4 runid="srp_2013_0206_100625" 
-VARS A4 workerid="4" 
-VARS A5 var1="run=1033 filter=z camcol=2 field=142" 
-VARS A5 var2="5" 
-VARS A5 visit="0" 
-VARS A5 runid="srp_2013_0206_100625" 
-VARS A5 workerid="5" 
-VARS A6 var1="run=1033 filter=g camcol=2 field=91" 
-VARS A6 var2="6" 
-VARS A6 visit="0" 
-VARS A6 runid="srp_2013_0206_100625" 
-VARS A6 workerid="6" 
-VARS A7 var1="run=1033 filter=z camcol=2 field=18" 
-VARS A7 var2="7" 
-VARS A7 visit="0" 
-VARS A7 runid="srp_2013_0206_100625" 
-VARS A7 workerid="7" 
-VARS A8 var1="run=1033 filter=i camcol=2 field=96" 
-VARS A8 var2="8" 
-VARS A8 visit="0" 
-VARS A8 runid="srp_2013_0206_100625" 
-VARS A8 workerid="8" 
-VARS A9 var1="run=1033 filter=g camcol=2 field=184" 
-VARS A9 var2="9" 
-VARS A9 visit="0" 
-VARS A9 runid="srp_2013_0206_100625" 
-VARS A9 workerid="9" 
-VARS A10 var1="run=1033 filter=r camcol=2 field=193" 
-VARS A10 var2="10" 
-VARS A10 visit="0" 
-VARS A10 runid="srp_2013_0206_100625" 
-VARS A10 workerid="10" 
-VARS A11 var1="run=1033 filter=u camcol=2 field=210" 
-VARS A11 var2="11" 
-VARS A11 visit="0" 
-VARS A11 runid="srp_2013_0206_100625" 
-VARS A11 workerid="11" 
-VARS A12 var1="run=1033 filter=i camcol=2 field=108" 
-VARS A12 var2="12" 
-VARS A12 visit="0" 
-VARS A12 runid="srp_2013_0206_100625" 
-VARS A12 workerid="12" 
-VARS A13 var1="run=1033 filter=r camcol=2 field=187" 
-VARS A13 var2="13" 
-VARS A13 visit="0" 
-VARS A13 runid="srp_2013_0206_100625" 
-VARS A13 workerid="13" 
-VARS A14 var1="run=1033 filter=g camcol=2 field=18" 
-VARS A14 var2="14" 
-VARS A14 visit="0" 
-VARS A14 runid="srp_2013_0206_100625" 
-VARS A14 workerid="14" 
-VARS A15 var1="run=1033 filter=g camcol=2 field=153" 
-VARS A15 var2="15" 
-VARS A15 visit="0" 
-VARS A15 runid="srp_2013_0206_100625" 
-VARS A15 workerid="15" 
-VARS A16 var1="run=1033 filter=z camcol=2 field=74" 
-VARS A16 var2="16" 
-VARS A16 visit="0" 
-VARS A16 runid="srp_2013_0206_100625" 
-VARS A16 workerid="16" 
-VARS A17 var1="run=1033 filter=r camcol=2 field=229 run=1033 filter=i camcol=2 field=47" 
-VARS A17 var2="17" 
-VARS A17 visit="0" 
-VARS A17 runid="srp_2013_0206_100625" 
-VARS A17 workerid="17" 
-PARENT A CHILD A1 
-PARENT A1 CHILD B 
-PARENT A CHILD A2 
-PARENT A2 CHILD B 
-PARENT A CHILD A3 
-PARENT A3 CHILD B 
-PARENT A CHILD A4 
-PARENT A4 CHILD B 
-PARENT A CHILD A5 
-PARENT A5 CHILD B 
-PARENT A CHILD A6 
-PARENT A6 CHILD B 
-PARENT A CHILD A7 
-PARENT A7 CHILD B 
-PARENT A CHILD A8 
-PARENT A8 CHILD B 
-PARENT A CHILD A9 
-PARENT A9 CHILD B 
-PARENT A CHILD A10 
-PARENT A10 CHILD B 
-PARENT A CHILD A11 
-PARENT A11 CHILD B 
-PARENT A CHILD A12 
-PARENT A12 CHILD B 
-PARENT A CHILD A13 
-PARENT A13 CHILD B 
-PARENT A CHILD A14 
-PARENT A14 CHILD B 
-PARENT A CHILD A15 
-PARENT A15 CHILD B 
-PARENT A CHILD A16 
-PARENT A16 CHILD B 
+
+VARS A1 var1="run=1033 filter=r camcol=2 field=229"
+VARS A1 var2="1"
+VARS A1 visit="0"
+VARS A1 runid="srp_2013_0206_100625"
+VARS A1 workerid="1"
+VARS A2 var1="run=1033 filter=i camcol=2 field=94"
+VARS A2 var2="2"
+VARS A2 visit="0"
+VARS A2 runid="srp_2013_0206_100625"
+VARS A2 workerid="2"
+VARS A3 var1="run=1033 filter=i camcol=2 field=47"
+VARS A3 var2="3"
+VARS A3 visit="0"
+VARS A3 runid="srp_2013_0206_100625"
+VARS A3 workerid="3"
+VARS A4 var1="run=1033 filter=r camcol=2 field=101"
+VARS A4 var2="4"
+VARS A4 visit="0"
+VARS A4 runid="srp_2013_0206_100625"
+VARS A4 workerid="4"
+VARS A5 var1="run=1033 filter=z camcol=2 field=142"
+VARS A5 var2="5"
+VARS A5 visit="0"
+VARS A5 runid="srp_2013_0206_100625"
+VARS A5 workerid="5"
+VARS A6 var1="run=1033 filter=g camcol=2 field=91"
+VARS A6 var2="6"
+VARS A6 visit="0"
+VARS A6 runid="srp_2013_0206_100625"
+VARS A6 workerid="6"
+VARS A7 var1="run=1033 filter=z camcol=2 field=18"
+VARS A7 var2="7"
+VARS A7 visit="0"
+VARS A7 runid="srp_2013_0206_100625"
+VARS A7 workerid="7"
+VARS A8 var1="run=1033 filter=i camcol=2 field=96"
+VARS A8 var2="8"
+VARS A8 visit="0"
+VARS A8 runid="srp_2013_0206_100625"
+VARS A8 workerid="8"
+VARS A9 var1="run=1033 filter=g camcol=2 field=184"
+VARS A9 var2="9"
+VARS A9 visit="0"
+VARS A9 runid="srp_2013_0206_100625"
+VARS A9 workerid="9"
+VARS A10 var1="run=1033 filter=r camcol=2 field=193"
+VARS A10 var2="10"
+VARS A10 visit="0"
+VARS A10 runid="srp_2013_0206_100625"
+VARS A10 workerid="10"
+VARS A11 var1="run=1033 filter=u camcol=2 field=210"
+VARS A11 var2="11"
+VARS A11 visit="0"
+VARS A11 runid="srp_2013_0206_100625"
+VARS A11 workerid="11"
+VARS A12 var1="run=1033 filter=i camcol=2 field=108"
+VARS A12 var2="12"
+VARS A12 visit="0"
+VARS A12 runid="srp_2013_0206_100625"
+VARS A12 workerid="12"
+VARS A13 var1="run=1033 filter=r camcol=2 field=187"
+VARS A13 var2="13"
+VARS A13 visit="0"
+VARS A13 runid="srp_2013_0206_100625"
+VARS A13 workerid="13"
+VARS A14 var1="run=1033 filter=g camcol=2 field=18"
+VARS A14 var2="14"
+VARS A14 visit="0"
+VARS A14 runid="srp_2013_0206_100625"
+VARS A14 workerid="14"
+VARS A15 var1="run=1033 filter=g camcol=2 field=153"
+VARS A15 var2="15"
+VARS A15 visit="0"
+VARS A15 runid="srp_2013_0206_100625"
+VARS A15 workerid="15"
+VARS A16 var1="run=1033 filter=z camcol=2 field=74"
+VARS A16 var2="16"
+VARS A16 visit="0"
+VARS A16 runid="srp_2013_0206_100625"
+VARS A16 workerid="16"
+VARS A17 var1="run=1033 filter=r camcol=2 field=229 run=1033 filter=i camcol=2 field=47"
+VARS A17 var2="17"
+VARS A17 visit="0"
+VARS A17 runid="srp_2013_0206_100625"
+VARS A17 workerid="17"
+PARENT A CHILD A1
+PARENT A1 CHILD B
+PARENT A CHILD A2
+PARENT A2 CHILD B
+PARENT A CHILD A3
+PARENT A3 CHILD B
+PARENT A CHILD A4
+PARENT A4 CHILD B
+PARENT A CHILD A5
+PARENT A5 CHILD B
+PARENT A CHILD A6
+PARENT A6 CHILD B
+PARENT A CHILD A7
+PARENT A7 CHILD B
+PARENT A CHILD A8
+PARENT A8 CHILD B
+PARENT A CHILD A9
+PARENT A9 CHILD B
+PARENT A CHILD A10
+PARENT A10 CHILD B
+PARENT A CHILD A11
+PARENT A11 CHILD B
+PARENT A CHILD A12
+PARENT A12 CHILD B
+PARENT A CHILD A13
+PARENT A13 CHILD B
+PARENT A CHILD A14
+PARENT A14 CHILD B
+PARENT A CHILD A15
+PARENT A15 CHILD B
+PARENT A CHILD A16
+PARENT A16 CHILD B
 PARENT A CHILD A17
-PARENT A17 CHILD B 
+PARENT A17 CHILD B

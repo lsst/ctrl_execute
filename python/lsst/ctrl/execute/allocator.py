@@ -29,10 +29,10 @@ import sys
 from datetime import datetime
 from string import Template
 
-from lsst.ctrl.execute import envString
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
 from lsst.ctrl.execute.templateWriter import TemplateWriter
+from lsst.resources import ResourcePath, ResourcePathExpression
 
 _LOG = logging.getLogger(__name__)
 
@@ -48,11 +48,22 @@ class Allocator:
         the name of the platform to execute on
     opts : `Config`
         Config object containing options
-    condorInfoFileName : `str`
+    condorInfoFileName : `lsst.resources.ResourcePathExpression`
         Name of the file containing Config information
+
+    Raises
+    ------
+    TypeError
+        If the condorInfoFileName is the wrong type.
     """
 
-    def __init__(self, platform, opts, configuration, condorInfoFileName):
+    def __init__(
+        self,
+        platform: str,
+        opts,
+        configuration,
+        condorInfoFileName: ResourcePathExpression,
+    ):
         """Constructor
         @param platform: target platform for PBS submission
         @param opts: options to override
@@ -61,9 +72,8 @@ class Allocator:
         self.defaults = {}
         self.configuration = configuration
 
-        fileName = envString.resolve(condorInfoFileName)
         condorInfoConfig = CondorInfoConfig()
-        condorInfoConfig.load(fileName)
+        condorInfoConfig.loadFromStream(ResourcePath(condorInfoFileName).read())
 
         self.platform = platform
 
@@ -152,15 +162,14 @@ class Allocator:
         )
         self.defaults["SCHEDULER"] = self.configuration.platform.scheduler
 
-    def loadAllocationConfig(self, name, suffix):
+    def loadAllocationConfig(self, name: ResourcePathExpression, suffix):
         """Loads all values from allocationConfig and command line overrides
         into data structures suitable for use by the TemplateWriter object.
         """
-        resolvedName = envString.resolve(name)
+        if not (name_ := ResourcePath(name)).exists():
+            raise RuntimeError("%s was not found." % name_)
         allocationConfig = AllocationConfig()
-        if not os.path.exists(resolvedName):
-            raise RuntimeError("%s was not found." % resolvedName)
-        allocationConfig.load(resolvedName)
+        allocationConfig.loadFromStream(name_.read())
 
         self.defaults["QUEUE"] = allocationConfig.platform.queue
         self.defaults["EMAIL_NOTIFICATION"] = allocationConfig.platform.email
@@ -241,7 +250,7 @@ class Allocator:
         _LOG.debug("Wrote new condor configuration file to %s", outfile)
         return outfile
 
-    def createFile(self, input, output):
+    def createFile(self, input: ResourcePathExpression, output: ResourcePathExpression):
         """Creates a new file, using "input" as a Template, and writes the
         new file to output.
 
@@ -250,8 +259,7 @@ class Allocator:
         outfile : `str`
             The newly created file name
         """
-        resolvedInputName = envString.resolve(input)
-        _LOG.debug("Creating file from template using %s", resolvedInputName)
+        _LOG.debug("Creating file from template using %s", input)
         template = TemplateWriter()
         # Uses the associative arrays of "defaults" and "commandLineDefaults"
         # to write out the new file from the template.
@@ -261,7 +269,7 @@ class Allocator:
             val = self.commandLineDefaults[key]
             if val is not None:
                 substitutes[key] = self.commandLineDefaults[key]
-        template.rewrite(resolvedInputName, output, substitutes)
+        template.rewrite(input, output, substitutes)
         return output
 
     def isVerbose(self):
@@ -460,3 +468,7 @@ class Allocator:
         # high order bits are status, low order bits are signal.
         exitCode = (status & 0xFF00) >> 8
         return exitCode
+
+    def submit(self):
+        """Submit the glidein jobs to the Batch system."""
+        raise NotImplementedError

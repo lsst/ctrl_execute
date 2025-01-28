@@ -23,12 +23,12 @@
 #
 
 
-import string
 import sys
 
 from lsst.ctrl.execute.qCommand import QCommand
 
-if __name__ == "__main__":
+
+def main():
     platform = sys.argv[1]
 
     cmd = QCommand(platform)
@@ -48,8 +48,12 @@ if __name__ == "__main__":
             cmd.userName,
             cmd.hostName,
             cmd.utilityPath,
-            string.join(sys.argv[2:]),
+            " ".join(sys.argv[2:]),
         )
 
     exitCode = cmd.runCommand(command)
-    sys.exit(exitCode)
+    return exitCode
+
+
+if __name__ == "__main__":
+    sys.exit(main())

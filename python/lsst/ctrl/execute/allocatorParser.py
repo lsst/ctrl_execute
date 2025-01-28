@@ -41,12 +41,9 @@ class AllocatorParser:
         """
 
         self.defaults = {}
-
-        self.args = []
-
         self.args = self.parseArgs(basename)
 
-    def parseArgs(self, basename):
+    def parseArgs(self, basename) -> argparse.Namespace:
         """Parse command line, and test for required arguments
 
         Parameters
@@ -60,7 +57,9 @@ class AllocatorParser:
         """
 
         parser = argparse.ArgumentParser(prog=basename)
-        parser.add_argument("platform", help="node allocation platform")
+        parser.add_argument(
+            "platform", type=str, default="s3df", help="node allocation platform"
+        )
         parser.add_argument(
             "--auto",
             action="store_true",
@@ -214,7 +213,7 @@ class AllocatorParser:
 
         Returns
         -------
-        args: `list`
+        args: `argparse.Namespace`
             remaining command line arguments
         """
         return self.args

@@ -51,11 +51,11 @@
 #
 # # cd $SCR                # change to job scratch directory
 
-/bin/echo $PBS_JOBID 
+/bin/echo $PBS_JOBID
 
 /bin/echo Beginning_Glidein_Setup
 
-hostname -f 
+hostname -f
 
 hostcnt=0;
 for line in `sort $PBS_NODEFILE | uniq`
@@ -72,15 +72,15 @@ done
 
 for num in $(seq 1 $hostcnt)
 do
-    ssh ${hostname[$num]} 'hostname -f' & 
+    ssh ${hostname[$num]} 'hostname -f' &
 done
 wait
 
 for num in $(seq 1 $hostcnt)
 do
-    ssh ${hostname[$num]} 'export _condor_CONDOR_HOST=lsst-launch.ncsa.illinois.edu;export _condor_GLIDEIN_HOST=lsst-launch.ncsa.illinois.edu;export _condor_LOCAL_DIR=/lsst/home/c3po/condor_local;export _condor_SBIN=/oasis/projects/nsf/nsa101/srp/condor/condor-7.4.4-r1/sbin;export _condor_NUM_CPUS=12;export _condor_UID_DOMAIN=ncsa.illinois.edu;export _condor_FILESYSTEM_DOMAIN=sdsc.edu;export _condor_MAIL=/bin/mail;export _condor_STARTD_NOCLAIM_SHUTDOWN=1800; /oasis/projects/nsf/nsa101/srp/condor/glidein/glidein_startup_gordon -dyn -f' & 
+    ssh ${hostname[$num]} 'export _condor_CONDOR_HOST=lsst-launch.ncsa.illinois.edu;export _condor_GLIDEIN_HOST=lsst-launch.ncsa.illinois.edu;export _condor_LOCAL_DIR=/lsst/home/c3po/condor_local;export _condor_SBIN=/oasis/projects/nsf/nsa101/srp/condor/condor-7.4.4-r1/sbin;export _condor_NUM_CPUS=12;export _condor_UID_DOMAIN=ncsa.illinois.edu;export _condor_FILESYSTEM_DOMAIN=sdsc.edu;export _condor_MAIL=/bin/mail;export _condor_STARTD_NOCLAIM_SHUTDOWN=1800; /oasis/projects/nsf/nsa101/srp/condor/glidein/glidein_startup_gordon -dyn -f' &
 done
 
 wait
 
-date 
+date

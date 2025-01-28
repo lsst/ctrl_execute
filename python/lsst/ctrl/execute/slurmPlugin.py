@@ -27,17 +27,19 @@ import os
 import subprocess
 import sys
 import time
+from pathlib import Path
 from string import Template
 
 import htcondor
 from lsst.ctrl.bps.htcondor import condor_q
 from lsst.ctrl.execute.allocator import Allocator
+from lsst.ctrl.execute.findPackageFile import find_package_file
+from lsst.resources import ResourcePath, ResourcePathExpression
 
 _LOG = logging.getLogger(__name__)
 
 
 class SlurmPlugin(Allocator):
-
     @staticmethod
     def countSlurmJobs(jobname, jobstates):
         """Check Slurm queue for Glideins of given states
@@ -100,13 +102,8 @@ class SlurmPlugin(Allocator):
         numberOfJobs = SlurmPlugin.countSlurmJobs(jobname, jobstates="R")
         return numberOfJobs
 
-    def createFilesFromTemplates(self, platformPkgDir):
+    def createFilesFromTemplates(self):
         """Create the Slurm submit, script, and htcondor config files
-
-        Parameters
-        ----------
-        platformPkgDir : `str`
-            path to the ctrl_platform package being used
 
         Returns
         -------
@@ -119,20 +116,20 @@ class SlurmPlugin(Allocator):
         template.substitute(USER_HOME=self.getUserHome())
 
         # create the slurm submit file
-        slurmName = os.path.join(
-            platformPkgDir, "etc", "templates", "generic.slurm.template"
+        slurmName = find_package_file(
+            "generic.slurm.template", kind="templates", platform=self.platform
         )
         generatedSlurmFile = self.createSubmitFile(slurmName)
 
         # create the condor configuration file
-        condorFile = os.path.join(
-            platformPkgDir, "etc", "templates", "glidein_condor_config.template"
+        condorFile = find_package_file(
+            "glidein_condor_config.template", kind="templates", platform=self.platform
         )
         self.createCondorConfigFile(condorFile)
 
         # create the script that the slurm submit file calls
-        allocationName = os.path.join(
-            platformPkgDir, "etc", "templates", "allocation.sh.template"
+        allocationName = find_package_file(
+            "allocation.sh.template", kind="templates", platform=self.platform
         )
         self.createAllocationFile(allocationName)
 
@@ -140,19 +137,11 @@ class SlurmPlugin(Allocator):
 
         return generatedSlurmFile
 
-    def submit(self, platform, platformPkgDir):
-        """Submit the glidein jobs to the Batch system
+    def submit(self):
+        """Submit the glidein jobs to the Batch system."""
+        configName = find_package_file("slurmConfig.py", platform=self.platform)
 
-        Parameters
-        ----------
-        platform : `str`
-            name of the target compute platform
-        platformPkgDir : `str`
-            path to the ctrl_platform package being used
-        """
-        configName = os.path.join(platformPkgDir, "etc", "config", "slurmConfig.py")
-
-        self.loadSlurm(configName, platformPkgDir)
+        self.loadSlurm(configName)
         verbose = self.isVerbose()
         auto = self.isAuto()
 
@@ -162,12 +151,10 @@ class SlurmPlugin(Allocator):
 
         # run the sbatch command
         template = Template(self.getLocalScratchDirectory())
-        localScratchDir = template.substitute(USER_SCRATCH=self.getUserScratch())
-        slurmSubmitDir = os.path.join(localScratchDir, self.defaults["DATE_STRING"])
-        if not os.path.exists(localScratchDir):
-            os.mkdir(localScratchDir)
-        if not os.path.exists(slurmSubmitDir):
-            os.mkdir(slurmSubmitDir)
+        localScratchDir = Path(template.substitute(USER_SCRATCH=self.getUserScratch()))
+        slurmSubmitDir = localScratchDir / self.defaults["DATE_STRING"]
+        localScratchDir.mkdir(exist_ok=True)
+        slurmSubmitDir.mkdir(exist_ok=True)
         os.chdir(slurmSubmitDir)
         _LOG.debug(
             "The working local scratch directory localScratchDir is %s ",
@@ -181,9 +168,9 @@ class SlurmPlugin(Allocator):
         _LOG.debug("The user home directory is %s", self.getUserHome())
 
         if auto:
-            self.glideinsFromJobPressure(platformPkgDir)
+            self.glideinsFromJobPressure()
         else:
-            generatedSlurmFile = self.createFilesFromTemplates(platformPkgDir)
+            generatedSlurmFile = self.createFilesFromTemplates()
             cmd = "sbatch --mem %s %s" % (totalMemory, generatedSlurmFile)
             nodes = self.getNodes()
             # In this case 'nodes' is the Target.
@@ -226,7 +213,7 @@ class SlurmPlugin(Allocator):
                     _LOG.error("error running %s", cmd)
                     sys.exit(exitCode)
 
-    def loadSlurm(self, name, platformPkgDir):
+    def loadSlurm(self, name):
         if self.opts.reservation is not None:
             self.defaults["RESERVATION"] = (
                 "#SBATCH --reservation %s" % self.opts.reservation
@@ -245,12 +232,10 @@ class SlurmPlugin(Allocator):
         scratchDir = template.substitute(USER_SCRATCH=self.getUserScratch())
         self.defaults["SCRATCH_DIR"] = scratchDir
 
-        self.allocationFileName = os.path.join(
-            self.configDir, "allocation_%s.sh" % self.uniqueIdentifier
+        self.allocationFileName = (
+            Path(self.configDir) / f"allocation_{self.uniqueIdentifier}.sh"
         )
-        self.defaults["GENERATED_ALLOCATE_SCRIPT"] = os.path.basename(
-            self.allocationFileName
-        )
+        self.defaults["GENERATED_ALLOCATE_SCRIPT"] = self.allocationFileName.name
 
         if self.opts.openfiles is None:
             self.defaults["OPEN_FILES"] = 20480
@@ -267,29 +252,28 @@ class SlurmPlugin(Allocator):
             self.defaults["PACK_BLOCK"] = "Rank = TotalCpus - Cpus"
 
         # handle dynamic slot block template:
-        # 1) if it isn't specified, just put a comment in it's place
+        # 1) if it isn't specified, just put a comment in its place
         # 2) if it's specified, but without a filename, use the default
         # 3) if it's specified with a filename, use that.
-        dynamicSlotsName = None
         if self.opts.dynamic is None:
             self.defaults["DYNAMIC_SLOTS_BLOCK"] = "#"
             return
 
         if self.opts.dynamic == "__default__":
-            dynamicSlotsName = os.path.join(
-                platformPkgDir, "etc", "templates", "dynamic_slots.template"
+            dynamicSlotsName = find_package_file(
+                "dynamic_slots.template", kind="templates", platform=self.platform
             )
         else:
-            dynamicSlotsName = self.opts.dynamic
+            dynamicSlotsName = ResourcePath(self.opts.dynamic)
 
-        with open(dynamicSlotsName) as f:
+        with dynamicSlotsName.open() as f:
             lines = f.readlines()
             block = ""
             for line in lines:
                 block += line
             self.defaults["DYNAMIC_SLOTS_BLOCK"] = block
 
-    def createAllocationFile(self, input):
+    def createAllocationFile(self, input: ResourcePathExpression):
         """Creates Allocation script file using the file "input" as a Template
 
         Returns
@@ -302,14 +286,8 @@ class SlurmPlugin(Allocator):
         os.chmod(outfile, 0o755)
         return outfile
 
-    def glideinsFromJobPressure(self, platformPkgDir):
-        """Determine and submit the glideins needed from job pressure
-
-        Parameters
-        ----------
-        platformPkgDir : `str`
-            path to the ctrl_platform package being used
-        """
+    def glideinsFromJobPressure(self):
+        """Determine and submit the glideins needed from job pressure."""
 
         verbose = self.isVerbose()
         autoCPUs = self.getAutoCPUs()
@@ -355,7 +333,7 @@ class SlurmPlugin(Allocator):
             _LOG.info("Auto: No HTCondor Jobs detected.")
             return
 
-        generatedSlurmFile = self.createFilesFromTemplates(platformPkgDir)
+        generatedSlurmFile = self.createFilesFromTemplates()
         condorq_large = []
         condorq_small = []
         schedd_name, condorq_full = condorq_data.popitem()

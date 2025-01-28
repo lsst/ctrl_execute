@@ -22,9 +22,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-# This class takes template files and substitutes the values for the given
-# keys, writing a new file generated from the template.
-#
+from lsst.resources import ResourcePath, ResourcePathExpression
 
 
 class TemplateWriter:
@@ -32,26 +30,21 @@ class TemplateWriter:
     write a new file with those values.
     """
 
-    def rewrite(self, input, output, pairs):
+    def rewrite(
+        self, input: ResourcePathExpression, output: ResourcePathExpression, pairs
+    ):
         """Given a input template, take the keys from key/values in the config
         object and substitute the values, and write those to the output file.
         @param input - the input template name
         @param output - the output file name
         @param pairs of values to substitute in the template
         """
-        fpInput = open(input, "r")
-        fpOutput = open(output, "w")
-
-        while True:
-            line = fpInput.readline()
-            if len(line) == 0:
-                break
-
-            # replace the user defined names
-            for name in pairs:
-                key = "$" + name
-                val = str(pairs[name])
-                line = line.replace(key, val)
-            fpOutput.write(line)
-        fpInput.close()
-        fpOutput.close()
+        with ResourcePath(output).open(mode="w") as f_out:
+            with ResourcePath(input).open(mode="r") as f_in:
+                for line in f_in.readlines():
+                    # replace the user defined names
+                    for name in pairs:
+                        key = "$" + name
+                        val = str(pairs[name])
+                        line = line.replace(key, val)
+                    f_out.write(line)

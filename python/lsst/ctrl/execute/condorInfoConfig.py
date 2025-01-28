@@ -23,7 +23,7 @@
 #
 
 import lsst.pex.config as pexConfig
-from lsst.ctrl.execute import envString
+from lsst.ctrl.execute.findPackageFile import find_package_file
 
 
 class FakeTypeMap(dict):
@@ -58,9 +58,8 @@ class CondorInfoConfig(pexConfig.Config):
 
 if __name__ == "__main__":
     config = CondorInfoConfig()
-    filename = "$HOME/.lsst/condor-info.py"
-    filename = envString.resolve(filename)
-    config.load(filename)
+    filename = find_package_file("condor-info.py")
+    config.loadFromStream(filename.read())
 
     for i in config.platform:
         print(i)
