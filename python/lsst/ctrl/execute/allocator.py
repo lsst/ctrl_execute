@@ -78,7 +78,7 @@ class Allocator:
         self.platform = platform
 
         # Look up the user's name and home and scratch directory in the
-        # $HOME/.lsst/condor-info.py file
+        # $HOME/.lsst/condor-info.py file or in the environment.
         user_name = None
         user_home = None
         user_scratch = None
@@ -87,6 +87,10 @@ class Allocator:
                 user_name = condorInfoConfig.platform[name].user.name
                 user_home = condorInfoConfig.platform[name].user.home
                 user_scratch = condorInfoConfig.platform[name].user.scratch
+                if user_name is None and "USER" in os.environ:
+                    user_name = os.environ["USER"]
+                if user_home is None and "HOME" in os.environ:
+                    user_home = os.environ["HOME"]
                 if user_scratch is None and "SCRATCH" in os.environ:
                     user_scratch = os.environ["SCRATCH"]
         if user_name is None:
