@@ -199,6 +199,13 @@ class AllocatorParser:
             help="configure to use dynamic/partitionable slot; legacy option: this is always enabled now",
         )
 
+        parser.add_argument(
+            "--constraint",
+            action="append",
+            dest="constraint",
+            type=str,
+            help="additional contraint predicate to use with htcondor idle job queries",
+        )
         self.args = parser.parse_args()
 
         return self.args
