@@ -178,6 +178,20 @@ class AllocatorParser:
             dest="packnodes",
             help="encourage nodes to pack jobs rather than spread",
         )
+        parser.add_argument(
+            "--exclusive",
+            action="store_true",
+            dest="exclusive",
+            default=None,
+            help="glidein will be an exclusive batch job",
+        )
+        parser.add_argument(
+            "--exclusive-user",
+            action="store_true",
+            dest="exclusiveUser",
+            default=None,
+            help="glidein will be an exclusive to the user batch job",
+        )
         parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="verbose")
         parser.add_argument(
             "-r",
