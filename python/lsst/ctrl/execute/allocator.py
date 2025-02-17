@@ -366,6 +366,18 @@ class Allocator:
         """
         return self.getParameter("RESERVATION")
 
+    def getExclusive(self):
+        """Accessor for EXCLUSIVE
+        @return the value of EXCLUSIVE
+        """
+        return self.getParameter("EXCLUSIVE")
+
+    def getExcluser(self):
+        """Accessor for EXCLUSER
+        @return the value of EXCLUSER
+        """
+        return self.getParameter("EXCLUSER")
+
     def getParameter(self, value):
         """Accessor for generic value
         @return None if value is not set.  Otherwise, use the command line
