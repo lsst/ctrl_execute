@@ -309,6 +309,12 @@ class SlurmPlugin(Allocator):
         # The constraint determines that the jobs to be returned belong to
         # the current user (Owner) and are Idle vanilla universe jobs.
         full_constraint = f"{owner} && {jstat} && {juniv}"
+        # The constraint may be extended with additional arbitrary predicates
+        # if these have been provided to the allocator.
+        if self.opts.constraint:
+            full_constraint += " && "
+            full_constraint += " && ".join(self.opts.constraint)
+
         _LOG.info("Auto: Query for htcondor jobs.")
         _LOG.debug("full_constraint %s", full_constraint)
         try:
