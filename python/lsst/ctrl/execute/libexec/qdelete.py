@@ -33,13 +33,7 @@ def main():
 
     cmd = QCommand(platform)
 
-    command = "%s %s@%s %s/qdel %s" % (
-        cmd.remoteLoginCmd,
-        cmd.userName,
-        cmd.hostName,
-        cmd.utilityPath,
-        jobId,
-    )
+    command = f"{cmd.remoteLoginCmd} {cmd.userName}@{cmd.hostName} {cmd.utilityPath}/qdel {jobId}"
     exitCode = cmd.runCommand(command)
     return exitCode
 

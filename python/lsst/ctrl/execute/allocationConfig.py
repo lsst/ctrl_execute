@@ -26,9 +26,7 @@ import lsst.pex.config as pexConfig
 class AllocatedPlatformConfig(pexConfig.Config):
     """Platform specific information"""
 
-    queue = pexConfig.Field(
-        doc="the scheduler queue to submit to", dtype=str, default="debug"
-    )
+    queue = pexConfig.Field(doc="the scheduler queue to submit to", dtype=str, default="debug")
     email = pexConfig.Field(
         doc="line to add to the scheduler file to get email notification (if supported)",
         dtype=str,
@@ -40,15 +38,11 @@ class AllocatedPlatformConfig(pexConfig.Config):
         dtype=str,
         default=None,
     )
-    loginHostName = pexConfig.Field(
-        doc="the host to login and copy files to", dtype=str, default=None
-    )
+    loginHostName = pexConfig.Field(doc="the host to login and copy files to", dtype=str, default=None)
     utilityPath = pexConfig.Field(
         doc="the directory containing the scheduler commands", dtype=str, default=None
     )
-    totalCoresPerNode = pexConfig.Field(
-        doc="the TOTAL number of cores on each node", dtype=int, default=1
-    )
+    totalCoresPerNode = pexConfig.Field(doc="the TOTAL number of cores on each node", dtype=int, default=1)
     glideinShutdown = pexConfig.Field(
         doc="number of seconds of inactivity before glideins are cancelled",
         dtype=int,
@@ -64,6 +58,4 @@ class AllocationConfig(pexConfig.Config):
 
     # this is done on two levels instead of one for future expansion of this
     # config class, which may require local attributes to be specified.
-    platform = pexConfig.ConfigField(
-        "platform allocation information", AllocatedPlatformConfig
-    )
+    platform = pexConfig.ConfigField("platform allocation information", AllocatedPlatformConfig)

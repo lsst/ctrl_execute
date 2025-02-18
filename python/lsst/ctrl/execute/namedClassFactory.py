@@ -35,6 +35,7 @@ class NamedClassFactory:
         an object of the specified name
     """
 
+    @staticmethod
     def createClass(name):
         dot = name.rindex(".")
         pack = name[0:dot]
@@ -45,13 +46,5 @@ class NamedClassFactory:
         module = __import__(name, globals(), locals(), [modname], 0)
         classobj = getattr(module, modname)
         if classobj is None:
-            raise RuntimeError(
-                'Attempt to instantiate class "'
-                + name
-                + '" failed. Could not find that class.'
-            )
+            raise RuntimeError(f"Attempt to instantiate class {name!r} failed. Could not find that class.")
         return classobj
-
-    # static method to createClasso
-
-    createClass = staticmethod(createClass)

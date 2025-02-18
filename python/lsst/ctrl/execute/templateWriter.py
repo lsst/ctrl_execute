@@ -30,9 +30,7 @@ class TemplateWriter:
     write a new file with those values.
     """
 
-    def rewrite(
-        self, input: ResourcePathExpression, output: ResourcePathExpression, pairs
-    ):
+    def rewrite(self, input: ResourcePathExpression, output: ResourcePathExpression, pairs):
         """Given a input template, take the keys from key/values in the config
         object and substitute the values, and write those to the output file.
         @param input - the input template name

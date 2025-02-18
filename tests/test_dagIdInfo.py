@@ -44,19 +44,17 @@ class TestDagIdInfo(lsst.utils.tests.TestCase):
         execPath = "lsst.ctrl.execute.libexec.dagIdInfo"
         filename = os.path.join("tests", "testfiles", "test.diamond.dag")
 
-        stdout = self.executeCommand("%s -m %s A1 %s" % (exe, execPath, filename))
+        stdout = self.executeCommand(f"{exe} -m {execPath} A1 {filename}")
         self.assertEqual(stdout, "run=1033 filter=r camcol=2 field=229\n")
 
-        stdout = self.executeCommand("%s -m %s A3 %s" % (exe, execPath, filename))
+        stdout = self.executeCommand(f"{exe} -m {execPath} A3 {filename}")
         self.assertEqual(stdout, "run=1033 filter=i camcol=2 field=47\n")
 
-        stdout = self.executeCommand("%s -m %s A17 %s" % (exe, execPath, filename))
-        val = (
-            "run=1033 filter=r camcol=2 field=229 run=1033 filter=i camcol=2 field=47\n"
-        )
+        stdout = self.executeCommand(f"{exe} -m {execPath} A17 {filename}")
+        val = "run=1033 filter=r camcol=2 field=229 run=1033 filter=i camcol=2 field=47\n"
         self.assertEqual(stdout, val)
 
-        stdout = self.executeCommand("%s -m %s B1 %s" % (exe, execPath, filename))
+        stdout = self.executeCommand(f"{exe} -m {execPath} B1 {filename}")
         self.assertEqual(stdout, "")
 
 

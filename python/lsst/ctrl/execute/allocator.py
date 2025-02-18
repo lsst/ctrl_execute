@@ -91,18 +91,15 @@ class Allocator:
                     user_scratch = os.environ["SCRATCH"]
         if user_name is None:
             raise RuntimeError(
-                "error: %s does not specify user name for platform == %s"
-                % (condorInfoFileName, self.platform)
+                f"error: {condorInfoFileName} does not specify user name for platform == {self.platform}"
             )
         if user_home is None:
             raise RuntimeError(
-                "error: %s does not specify user home for platform == %s"
-                % (condorInfoFileName, self.platform)
+                f"error: {condorInfoFileName} does not specify user home for platform == {self.platform}"
             )
         if user_scratch is None:
             raise RuntimeError(
-                "error: %s does not specify user scratch for platform == %s"
-                % (condorInfoFileName, self.platform)
+                f"error: {condorInfoFileName} does not specify user scratch for platform == {self.platform}"
             )
         self.defaults["USER_NAME"] = user_name
         self.defaults["USER_HOME"] = user_home
@@ -135,20 +132,11 @@ class Allocator:
         # The tempfile.mkstemp method restricts the file to only the user,
         # and does not guarantee a file name can that easily be identified.
         now = datetime.now()
-        self.defaults["DATE_STRING"] = "%02d_%02d%02d" % (
-            now.year,
-            now.month,
-            now.day,
-        )
+        self.defaults["DATE_STRING"] = f"{now.year:02d}_{now.month:02d}{now.day:02d}"
         username = pwd.getpwuid(os.geteuid()).pw_name
-        ident = "%s_%02d_%02d%02d_%02d%02d%02d" % (
-            username,
-            now.year,
-            now.month,
-            now.day,
-            now.hour,
-            now.minute,
-            now.second,
+        ident = (
+            f"{username}_{now.year:02d}_{now.month:02d}{now.day:02d}_"
+            f"{now.hour:02d}{now.minute:02d}{now.second:02d}"
         )
         return ident
 
@@ -167,7 +155,7 @@ class Allocator:
         into data structures suitable for use by the TemplateWriter object.
         """
         if not (name_ := ResourcePath(name)).exists():
-            raise RuntimeError("%s was not found." % name_)
+            raise RuntimeError(f"{name_} was not found.")
         allocationConfig = AllocationConfig()
         allocationConfig.loadFromStream(name_.read())
 
@@ -178,9 +166,7 @@ class Allocator:
         self.defaults["UTILITY_PATH"] = allocationConfig.platform.utilityPath
 
         if self.opts.glideinShutdown is None:
-            self.defaults["GLIDEIN_SHUTDOWN"] = str(
-                allocationConfig.platform.glideinShutdown
-            )
+            self.defaults["GLIDEIN_SHUTDOWN"] = str(allocationConfig.platform.glideinShutdown)
         else:
             self.defaults["GLIDEIN_SHUTDOWN"] = str(self.opts.glideinShutdown)
 
@@ -198,9 +184,7 @@ class Allocator:
         # of the cores you intend to use.   In other words, the total available
         # on a machine, times the number of machines.
         totalCoresPerNode = allocationConfig.platform.totalCoresPerNode
-        self.commandLineDefaults["TOTAL_CORE_COUNT"] = (
-            self.opts.nodeCount * totalCoresPerNode
-        )
+        self.commandLineDefaults["TOTAL_CORE_COUNT"] = self.opts.nodeCount * totalCoresPerNode
 
         self.uniqueIdentifier = self.createUniqueIdentifier()
 
@@ -212,13 +196,9 @@ class Allocator:
             "configs",
         )
 
-        self.submitFileName = os.path.join(
-            self.configDir, "alloc_%s.%s" % (self.uniqueIdentifier, suffix)
-        )
+        self.submitFileName = os.path.join(self.configDir, f"alloc_{self.uniqueIdentifier}.{suffix}")
 
-        self.condorConfigFileName = os.path.join(
-            self.configDir, "condor_%s.config" % self.uniqueIdentifier
-        )
+        self.condorConfigFileName = os.path.join(self.configDir, f"condor_{self.uniqueIdentifier}.config")
 
         self.defaults["GENERATED_CONFIG"] = os.path.basename(self.condorConfigFileName)
         self.defaults["CONFIGURATION_ID"] = self.uniqueIdentifier
@@ -407,31 +387,22 @@ class Allocator:
             nodeString = "s"
         if self.opts.dynamic is None:
             print(
-                "%s glidein%s will be allocated on %s using default dynamic slots configuration."
-                % (nodes, nodeString, self.platform)
+                f"{nodes} glidein{nodeString} will be allocated on "
+                f"{self.platform} using default dynamic slots configuration."
             )
-            print(
-                "There will be %s cores per glidein and a maximum time limit of %s"
-                % (cpus, wallClock)
-            )
+            print(f"There will be {cpus} cores per glidein and a maximum time limit of {wallClock}")
         elif self.opts.dynamic == "__default__":
             print(
-                "%s glidein%s will be allocated on %s using default dynamic slots configuration."
-                % (nodes, nodeString, self.platform)
+                f"{nodes} glidein{nodeString} will be allocated on {self.platform} "
+                "using default dynamic slots configuration."
             )
-            print(
-                "There will be %s cores per glidein and a maximum time limit of %s"
-                % (cpus, wallClock)
-            )
+            print(f"There will be {cpus} cores per glidein and a maximum time limit of {wallClock}")
         else:
             print(
-                "%s node%s will be allocated on %s using dynamic slot block specified in '%s'"
-                % (nodes, nodeString, self.platform, self.opts.dynamic)
+                f"{nodes} node{nodeString} will be allocated on {self.platform} "
+                f"using dynamic slot block specified in '{self.opts.dynamic}'"
             )
-            print(
-                "There will be  %s cores per node and maximum time limit of %s"
-                % (cpus, wallClock)
-            )
+            print(f"There will be  {cpus} cores per node and maximum time limit of {wallClock}")
         print("Node set name:")
         print(self.getNodeSetName())
 

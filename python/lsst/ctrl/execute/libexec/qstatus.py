@@ -35,15 +35,11 @@ def main():
 
     # default to doing a status for the user, otherwise, pass the args to qstat
     if len(sys.argv) == 2:
-        command = "%s %s@%s %s/qstat -u%s" % (
-            cmd.remoteLoginCmd,
-            cmd.userName,
-            cmd.hostName,
-            cmd.utilityPath,
-            cmd.userName,
+        command = (
+            f"{cmd.remoteLoginCmd} {cmd.userName}@{cmd.hostName} {cmd.utilityPath}/qstat -u{cmd.userName}"
         )
     else:
-        command = "%s %s@%s %s/qstat %s" % (
+        command = "{} {}@{} {}/qstat {}".format(
             cmd.remoteLoginCmd,
             cmd.userName,
             cmd.hostName,

@@ -1,4 +1,5 @@
 import pytest
+
 from lsst.ctrl.execute.findPackageFile import find_package_file
 
 

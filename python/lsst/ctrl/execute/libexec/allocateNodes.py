@@ -75,15 +75,11 @@ def main():
 
     # create the plugin class
     schedulerName = configuration.platform.scheduler
-    schedulerClass = NamedClassFactory.createClass(
-        "lsst.ctrl.execute." + schedulerName + "Plugin"
-    )
+    schedulerClass = NamedClassFactory.createClass("lsst.ctrl.execute." + schedulerName + "Plugin")
 
     # create the plugin
     condor_info_file = find_package_file("condor-info.py", platform=platform)
-    scheduler: Allocator = schedulerClass(
-        platform, p.getArgs(), configuration, condor_info_file
-    )
+    scheduler: Allocator = schedulerClass(platform, p.getArgs(), configuration, condor_info_file)
 
     # submit the request
     scheduler.submit()
