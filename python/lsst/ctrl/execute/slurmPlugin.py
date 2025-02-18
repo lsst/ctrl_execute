@@ -213,6 +213,10 @@ class SlurmPlugin(Allocator):
             self.defaults["RESERVATION"] = f"#SBATCH --reservation {self.opts.reservation}"
         else:
             self.defaults["RESERVATION"] = ""
+        if self.opts.exclusive is not None:
+            self.defaults["EXCLUSIVE"] = "#SBATCH --exclusive"
+        else:
+            self.defaults["EXCLUSIVE"] = ""
 
         if self.opts.qos:
             self.defaults["QOS"] = f"#SBATCH --qos {self.opts.qos}"
