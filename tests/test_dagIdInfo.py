@@ -51,9 +51,7 @@ class TestDagIdInfo(lsst.utils.tests.TestCase):
         self.assertEqual(stdout, "run=1033 filter=i camcol=2 field=47\n")
 
         stdout = self.executeCommand("%s -m %s A17 %s" % (exe, execPath, filename))
-        val = (
-            "run=1033 filter=r camcol=2 field=229 run=1033 filter=i camcol=2 field=47\n"
-        )
+        val = "run=1033 filter=r camcol=2 field=229 run=1033 filter=i camcol=2 field=47\n"
         self.assertEqual(stdout, val)
 
         stdout = self.executeCommand("%s -m %s B1 %s" % (exe, execPath, filename))

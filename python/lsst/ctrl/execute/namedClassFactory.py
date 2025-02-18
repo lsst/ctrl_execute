@@ -46,9 +46,7 @@ class NamedClassFactory:
         classobj = getattr(module, modname)
         if classobj is None:
             raise RuntimeError(
-                'Attempt to instantiate class "'
-                + name
-                + '" failed. Could not find that class.'
+                'Attempt to instantiate class "' + name + '" failed. Could not find that class.'
             )
         return classobj
 

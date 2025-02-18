@@ -28,9 +28,7 @@ import lsst.utils
 from lsst.resources import ResourcePath
 
 
-def find_package_file(
-    filename: str, kind: str = "config", platform: str | None = None
-) -> ResourcePath:
+def find_package_file(filename: str, kind: str = "config", platform: str | None = None) -> ResourcePath:
     """Find a package file from a set of candidate locations.
 
     Parameters
@@ -83,25 +81,17 @@ def find_package_file(
     file_candidates = [
         ResourcePath(home_dir).join(".lsst").join(_filename),
         ResourcePath(xdg_config_home).join("lsst").join(_filename),
-        (
-            ResourcePath(platform_pkg_dir).join("etc").join(kind).join(_filename)
-            if platform_pkg_dir
-            else None
-        ),
+        (ResourcePath(platform_pkg_dir).join("etc").join(kind).join(_filename) if platform_pkg_dir else None),
         ResourcePath(sys.exec_prefix).join("etc").join(kind).join(_filename),
         (
-            ResourcePath(
-                f"resource://lsst.ctrl.platform.{platform}/etc/{kind}/{_filename}"
-            )
+            ResourcePath(f"resource://lsst.ctrl.platform.{platform}/etc/{kind}/{_filename}")
             if platform
             else None
         ),
         ResourcePath(f"resource://lsst.ctrl.execute/etc/{kind}/{_filename}"),
     ]
     try:
-        found_file: ResourcePath = [
-            c for c in file_candidates if c is not None and c.exists()
-        ][0]
+        found_file: ResourcePath = [c for c in file_candidates if c is not None and c.exists()][0]
     except IndexError:
         raise FileNotFoundError(f"No file {filename} found in package file lookup")
     return found_file

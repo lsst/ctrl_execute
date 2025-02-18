@@ -31,6 +31,7 @@ from pathlib import Path
 from string import Template
 
 import htcondor
+
 from lsst.ctrl.bps.htcondor import condor_q
 from lsst.ctrl.execute.allocator import Allocator
 from lsst.ctrl.execute.findPackageFile import find_package_file
@@ -116,9 +117,7 @@ class SlurmPlugin(Allocator):
         template.substitute(USER_HOME=self.getUserHome())
 
         # create the slurm submit file
-        slurmName = find_package_file(
-            "generic.slurm.template", kind="templates", platform=self.platform
-        )
+        slurmName = find_package_file("generic.slurm.template", kind="templates", platform=self.platform)
         generatedSlurmFile = self.createSubmitFile(slurmName)
 
         # create the condor configuration file
@@ -128,9 +127,7 @@ class SlurmPlugin(Allocator):
         self.createCondorConfigFile(condorFile)
 
         # create the script that the slurm submit file calls
-        allocationName = find_package_file(
-            "allocation.sh.template", kind="templates", platform=self.platform
-        )
+        allocationName = find_package_file("allocation.sh.template", kind="templates", platform=self.platform)
         self.createAllocationFile(allocationName)
 
         _LOG.debug("The generated Slurm submit file is %s", generatedSlurmFile)
@@ -199,9 +196,7 @@ class SlurmPlugin(Allocator):
                 _LOG.error(e.output)
             strResult = result.decode("UTF-8")
 
-            _LOG.info(
-                "Detected this number of preexisting glidein jobs: %d", int(strResult)
-            )
+            _LOG.info("Detected this number of preexisting glidein jobs: %d", int(strResult))
 
             numberToAdd = nodes - int(strResult)
             _LOG.info("The number of glidein jobs to submit now is %d", numberToAdd)
@@ -215,9 +210,7 @@ class SlurmPlugin(Allocator):
 
     def loadSlurm(self, name):
         if self.opts.reservation is not None:
-            self.defaults["RESERVATION"] = (
-                "#SBATCH --reservation %s" % self.opts.reservation
-            )
+            self.defaults["RESERVATION"] = "#SBATCH --reservation %s" % self.opts.reservation
         else:
             self.defaults["RESERVATION"] = ""
 
@@ -232,9 +225,7 @@ class SlurmPlugin(Allocator):
         scratchDir = template.substitute(USER_SCRATCH=self.getUserScratch())
         self.defaults["SCRATCH_DIR"] = scratchDir
 
-        self.allocationFileName = (
-            Path(self.configDir) / f"allocation_{self.uniqueIdentifier}.sh"
-        )
+        self.allocationFileName = Path(self.configDir) / f"allocation_{self.uniqueIdentifier}.sh"
         self.defaults["GENERATED_ALLOCATE_SCRIPT"] = self.allocationFileName.name
 
         if self.opts.openfiles is None:
@@ -469,9 +460,7 @@ class SlurmPlugin(Allocator):
             if numberOfGlideinsReduced > maxSubmitGlideins:
                 numberOfGlideinsReduced = maxSubmitGlideins
                 _LOG.info("small: Reducing due to threshold.")
-            _LOG.debug(
-                "small: Number of Glideins to submit is %d", numberOfGlideinsReduced
-            )
+            _LOG.debug("small: Number of Glideins to submit is %d", numberOfGlideinsReduced)
 
             cpuopt = f"--cpus-per-task {autoCPUs}"
             memopt = f"--mem {memoryLimit}"

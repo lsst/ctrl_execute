@@ -43,9 +43,7 @@ def makeArgumentParser(description, inRootsRequired=True, addRegistryOption=True
     )
     parser.convert_arg_line_to_args = _line_to_args
 
-    parser.add_argument(
-        "-s", "--source", dest="source", help="Source site for file transfer."
-    )
+    parser.add_argument("-s", "--source", dest="source", help="Source site for file transfer.")
 
     parser.add_argument("-w", "--workerdir", dest="workerdir", help="workers directory")
 
@@ -55,9 +53,7 @@ def makeArgumentParser(description, inRootsRequired=True, addRegistryOption=True
 
     parser.add_argument("-r", "--runid", dest="runid", help="runid of production")
 
-    parser.add_argument(
-        "-i", "--idsPerJob", dest="idsPerJob", help="number of ids to run per job"
-    )
+    parser.add_argument("-i", "--idsPerJob", dest="idsPerJob", help="number of ids to run per job")
 
     return parser
 
@@ -75,9 +71,7 @@ def writeMapInfo(output, count, newDataTotal, myDataTotal):
     output.write(count + "  " + myDataTotal + "\n")
 
 
-def writeDagFile(
-    pipeline, templateFile, infile, workerdir, prescriptFile, runid, idsPerJob
-):
+def writeDagFile(pipeline, templateFile, infile, workerdir, prescriptFile, runid, idsPerJob):
     """
     Write Condor Dag Submission files.
     """
@@ -151,9 +145,7 @@ def writeDagFile(
 
         if acount == listSize:
             count += 1
-            outObj.write(
-                "JOB A" + str(count) + " " + workerdir + "/" + templateFile + "\n"
-            )
+            outObj.write("JOB A" + str(count) + " " + workerdir + "/" + templateFile + "\n")
             myDataTotal = " X ".join(myDataList)
             newDataTotal = "_".join(newDataList)
             writeVarsInfo(outObj, str(count), myDataTotal, visit, runid)

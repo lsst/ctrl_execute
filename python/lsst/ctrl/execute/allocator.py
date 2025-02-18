@@ -178,9 +178,7 @@ class Allocator:
         self.defaults["UTILITY_PATH"] = allocationConfig.platform.utilityPath
 
         if self.opts.glideinShutdown is None:
-            self.defaults["GLIDEIN_SHUTDOWN"] = str(
-                allocationConfig.platform.glideinShutdown
-            )
+            self.defaults["GLIDEIN_SHUTDOWN"] = str(allocationConfig.platform.glideinShutdown)
         else:
             self.defaults["GLIDEIN_SHUTDOWN"] = str(self.opts.glideinShutdown)
 
@@ -198,9 +196,7 @@ class Allocator:
         # of the cores you intend to use.   In other words, the total available
         # on a machine, times the number of machines.
         totalCoresPerNode = allocationConfig.platform.totalCoresPerNode
-        self.commandLineDefaults["TOTAL_CORE_COUNT"] = (
-            self.opts.nodeCount * totalCoresPerNode
-        )
+        self.commandLineDefaults["TOTAL_CORE_COUNT"] = self.opts.nodeCount * totalCoresPerNode
 
         self.uniqueIdentifier = self.createUniqueIdentifier()
 
@@ -212,13 +208,9 @@ class Allocator:
             "configs",
         )
 
-        self.submitFileName = os.path.join(
-            self.configDir, "alloc_%s.%s" % (self.uniqueIdentifier, suffix)
-        )
+        self.submitFileName = os.path.join(self.configDir, "alloc_%s.%s" % (self.uniqueIdentifier, suffix))
 
-        self.condorConfigFileName = os.path.join(
-            self.configDir, "condor_%s.config" % self.uniqueIdentifier
-        )
+        self.condorConfigFileName = os.path.join(self.configDir, "condor_%s.config" % self.uniqueIdentifier)
 
         self.defaults["GENERATED_CONFIG"] = os.path.basename(self.condorConfigFileName)
         self.defaults["CONFIGURATION_ID"] = self.uniqueIdentifier
@@ -410,28 +402,19 @@ class Allocator:
                 "%s glidein%s will be allocated on %s using default dynamic slots configuration."
                 % (nodes, nodeString, self.platform)
             )
-            print(
-                "There will be %s cores per glidein and a maximum time limit of %s"
-                % (cpus, wallClock)
-            )
+            print("There will be %s cores per glidein and a maximum time limit of %s" % (cpus, wallClock))
         elif self.opts.dynamic == "__default__":
             print(
                 "%s glidein%s will be allocated on %s using default dynamic slots configuration."
                 % (nodes, nodeString, self.platform)
             )
-            print(
-                "There will be %s cores per glidein and a maximum time limit of %s"
-                % (cpus, wallClock)
-            )
+            print("There will be %s cores per glidein and a maximum time limit of %s" % (cpus, wallClock))
         else:
             print(
                 "%s node%s will be allocated on %s using dynamic slot block specified in '%s'"
                 % (nodes, nodeString, self.platform, self.opts.dynamic)
             )
-            print(
-                "There will be  %s cores per node and maximum time limit of %s"
-                % (cpus, wallClock)
-            )
+            print("There will be  %s cores per node and maximum time limit of %s" % (cpus, wallClock))
         print("Node set name:")
         print(self.getNodeSetName())
 

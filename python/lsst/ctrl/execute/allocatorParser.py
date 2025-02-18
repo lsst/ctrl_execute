@@ -57,9 +57,7 @@ class AllocatorParser:
         """
 
         parser = argparse.ArgumentParser(prog=basename)
-        parser.add_argument(
-            "platform", type=str, default="s3df", help="node allocation platform"
-        )
+        parser.add_argument("platform", type=str, default="s3df", help="node allocation platform")
         parser.add_argument(
             "--auto",
             action="store_true",
@@ -180,9 +178,7 @@ class AllocatorParser:
             dest="packnodes",
             help="encourage nodes to pack jobs rather than spread",
         )
-        parser.add_argument(
-            "-v", "--verbose", action="store_true", dest="verbose", help="verbose"
-        )
+        parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="verbose")
         parser.add_argument(
             "-r",
             "--reservation",
