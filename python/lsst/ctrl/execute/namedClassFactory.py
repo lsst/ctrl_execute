@@ -35,6 +35,7 @@ class NamedClassFactory:
         an object of the specified name
     """
 
+    @staticmethod
     def createClass(name):
         dot = name.rindex(".")
         pack = name[0:dot]
@@ -49,7 +50,3 @@ class NamedClassFactory:
                 'Attempt to instantiate class "' + name + '" failed. Could not find that class.'
             )
         return classobj
-
-    # static method to createClasso
-
-    createClass = staticmethod(createClass)
