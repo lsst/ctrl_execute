@@ -168,7 +168,7 @@ class SlurmPlugin(Allocator):
             self.glideinsFromJobPressure()
         else:
             generatedSlurmFile = self.createFilesFromTemplates()
-            cmd = "sbatch --mem %s %s" % (totalMemory, generatedSlurmFile)
+            cmd = f"sbatch --mem {totalMemory} {generatedSlurmFile}"
             nodes = self.getNodes()
             # In this case 'nodes' is the Target.
 
@@ -210,12 +210,12 @@ class SlurmPlugin(Allocator):
 
     def loadSlurm(self, name):
         if self.opts.reservation is not None:
-            self.defaults["RESERVATION"] = "#SBATCH --reservation %s" % self.opts.reservation
+            self.defaults["RESERVATION"] = f"#SBATCH --reservation {self.opts.reservation}"
         else:
             self.defaults["RESERVATION"] = ""
 
         if self.opts.qos:
-            self.defaults["QOS"] = "#SBATCH --qos %s" % self.opts.qos
+            self.defaults["QOS"] = f"#SBATCH --qos {self.opts.qos}"
         else:
             self.defaults["QOS"] = ""
 

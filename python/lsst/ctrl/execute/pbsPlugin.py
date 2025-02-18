@@ -63,13 +63,9 @@ class PbsPlugin(Allocator):
         #
         # execute copy of PBS file to XSEDE node
         #
-        cmd = "%s %s %s@%s:%s/%s" % (
-            remoteCopyCmd,
-            generatedPbsFile,
-            userName,
-            hostName,
-            scratchDir,
-            os.path.basename(generatedPbsFile),
+        cmd = (
+            f"{remoteCopyCmd} {generatedPbsFile} "
+            f"{userName}@{hostName}:{scratchDir}/{os.path.basename(generatedPbsFile)}"
         )
         _LOG.debug(cmd)
         exitCode = self.runCommand(cmd, verbose)
@@ -80,13 +76,9 @@ class PbsPlugin(Allocator):
         #
         # execute copy of Condor config file to XSEDE node
         #
-        cmd = "%s %s %s@%s:%s/%s" % (
-            remoteCopyCmd,
-            generatedCondorConfigFile,
-            userName,
-            hostName,
-            scratchDir,
-            os.path.basename(generatedCondorConfigFile),
+        cmd = (
+            f"{remoteCopyCmd} {generatedCondorConfigFile} "
+            f"{userName}@{hostName}:{scratchDir}/{os.path.basename(generatedCondorConfigFile)}"
         )
         _LOG.debug(cmd)
         exitCode = self.runCommand(cmd, verbose)
@@ -97,13 +89,9 @@ class PbsPlugin(Allocator):
         #
         # execute qsub command on XSEDE node to perform Condor glide-in
         #
-        cmd = "%s %s@%s %s/qsub %s/%s" % (
-            remoteLoginCmd,
-            userName,
-            hostName,
-            utilityPath,
-            scratchDir,
-            os.path.basename(generatedPbsFile),
+        cmd = (
+            f"{remoteLoginCmd} {userName}@{hostName} "
+            f"{utilityPath}/qsub {scratchDir}/{os.path.basename(generatedPbsFile)}"
         )
         _LOG.debug(cmd)
         exitCode = self.runCommand(cmd, verbose)

@@ -96,7 +96,7 @@ def writeDagFile(pipeline, templateFile, infile, workerdir, prescriptFile, runid
     configObj.write("DAGMAN_SUBMIT_DELAY=0\n")
     configObj.write("DAGMAN_USER_LOG_SCAN_INTERVAL=5\n")
 
-    outObj.write("CONFIG %s\n" % configname)
+    outObj.write(f"CONFIG {configname}\n")
     outObj.write("JOB A " + workerdir + "/" + pipeline + ".pre\n")
     outObj.write("JOB B " + workerdir + "/" + pipeline + ".post\n")
     outObj.write(" \n")
@@ -114,7 +114,7 @@ def writeDagFile(pipeline, templateFile, infile, workerdir, prescriptFile, runid
     # A first pass through the Input File to define the individual Jobs
     # Loop over input entries
     #
-    fileObj = open(infile, "r")
+    fileObj = open(infile)
     count = 0
     acount = 0
     myDataTotal = ""

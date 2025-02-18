@@ -31,17 +31,17 @@ import sys
 # particular dag node
 def main():
     if len(sys.argv) != 3:
-        print("usage:  %s dagNodeName filename" % os.path.basename(sys.argv[0]))
+        print(f"usage:  {os.path.basename(sys.argv[0])} dagNodeName filename")
         return errno.EINVAL
 
     dagNode = sys.argv[1]
     filename = sys.argv[2]
 
     if not os.path.exists(filename):
-        print("file %s not found" % filename)
+        print(f"file {filename} not found")
         return errno.ENOENT
 
-    ex = r"VARS %s var1=\"(?P<idlist>.+?)\"" % dagNode
+    ex = rf"VARS {dagNode} var1=\"(?P<idlist>.+?)\""
     with open(filename) as file:
         for line in file:
             line = line.rstrip(" \n")
