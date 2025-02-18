@@ -39,7 +39,7 @@ def makeArgumentParser(description, inRootsRequired=True, addRegistryOption=True
         description=description,
         fromfile_prefix_chars="@",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=" \n" "ly.",
+        epilog=" \nly.",
     )
     parser.convert_arg_line_to_args = _line_to_args
 
