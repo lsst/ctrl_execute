@@ -23,11 +23,10 @@ import sys
 import unittest
 
 import lsst.utils.tests
-from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
-from lsst.ctrl.execute.condorConfig import CondorConfig
 from lsst.ctrl.execute.allocator import Allocator
 from lsst.ctrl.execute.allocatorParser import AllocatorParser
-
+from lsst.ctrl.execute.condorConfig import CondorConfig
+from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
 
 def setup_module(module):
     lsst.utils.tests.init()
@@ -35,7 +34,6 @@ def setup_module(module):
 
 class SlurmPluginTest(lsst.utils.tests.TestCase):
     def test1(self):
-
         os.environ["SCRATCH"] = "/scratch/test1"
         sys.argv = [
             "test1",
@@ -61,9 +59,7 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
         # create the plugin class
         schedulerName = "slurm"
 
-        schedulerClass = NamedClassFactory.createClass(
-            "lsst.ctrl.execute." + schedulerName + "Plugin"
-        )
+        schedulerClass = NamedClassFactory.createClass("lsst.ctrl.execute." + schedulerName + "Plugin")
 
         p0 = os.path.join("tests/testfiles", "config_condorInfo.py")
         condor_info_file = p0
@@ -74,9 +70,7 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
         self.config.load(path)
         self.assertEqual(self.config.platform.defaultRoot, "/usr")
 
-        scheduler: Allocator = schedulerClass(
-            platform, args, self.config, condor_info_file
-        )
+        scheduler: Allocator = schedulerClass(platform, args, self.config, condor_info_file)
 
         self.assertTrue(schedulerClass)
         self.assertTrue(scheduler)
