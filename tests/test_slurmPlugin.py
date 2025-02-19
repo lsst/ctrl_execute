@@ -18,6 +18,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
+
 import os.path
 import sys
 import unittest
@@ -27,6 +28,7 @@ from lsst.ctrl.execute.allocator import Allocator
 from lsst.ctrl.execute.allocatorParser import AllocatorParser
 from lsst.ctrl.execute.condorConfig import CondorConfig
 from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
+
 
 def setup_module(module):
     lsst.utils.tests.init()
