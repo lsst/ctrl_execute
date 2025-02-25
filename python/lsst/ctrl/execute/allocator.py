@@ -346,7 +346,11 @@ class Allocator:
         """Size of standard glideins for allocateNodes auto
         @return the value of autoCPUs
         """
-        return self.getParameter("AUTOCPUS")
+        if self.getParameter("EXCLUSIVE"):
+            peakcpus = self.configuration.platform.peakcpus
+            return peakcpus
+        else:
+            return self.getParameter("AUTOCPUS")
 
     def getWallClock(self):
         """Accessor for WALL_CLOCK
