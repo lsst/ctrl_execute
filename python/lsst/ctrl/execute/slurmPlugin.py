@@ -214,6 +214,16 @@ class SlurmPlugin(Allocator):
         else:
             self.defaults["RESERVATION"] = ""
 
+        if self.opts.exclusive is not None:
+            self.defaults["EXCLUSIVE"] = "#SBATCH --exclusive"
+        else:
+            self.defaults["EXCLUSIVE"] = ""
+
+        if self.opts.exclusiveUser is not None:
+            self.defaults["EXCLUSER"] = "#SBATCH --exclusive=user"
+        else:
+            self.defaults["EXCLUSER"] = ""
+
         if self.opts.qos:
             self.defaults["QOS"] = f"#SBATCH --qos {self.opts.qos}"
         else:

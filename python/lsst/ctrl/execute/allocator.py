@@ -30,7 +30,9 @@ from datetime import datetime
 from string import Template
 
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
+from lsst.ctrl.execute.condorConfig import CondorConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
+from lsst.ctrl.execute.findPackageFile import find_package_file
 from lsst.ctrl.execute.templateWriter import TemplateWriter
 from lsst.resources import ResourcePath, ResourcePathExpression
 
@@ -77,6 +79,10 @@ class Allocator:
 
         self.platform = platform
 
+        execConfigName = find_package_file("execConfig.py", platform=platform)
+        execConfig = CondorConfig()
+        execConfig.loadFromStream(execConfigName.read())
+
         # Look up the user's name and home and scratch directory in the
         # $HOME/.lsst/condor-info.py file
         user_name = None
@@ -108,7 +114,10 @@ class Allocator:
         self.commandLineDefaults["NODE_COUNT"] = self.opts.nodeCount
         self.commandLineDefaults["COLLECTOR"] = self.opts.collector
         self.commandLineDefaults["CPORT"] = self.opts.collectorport
-        self.commandLineDefaults["CPUS"] = self.opts.cpus
+        if self.opts.exclusive:
+            self.commandLineDefaults["CPUS"] = execConfig.platform.peakcpus
+        else:
+            self.commandLineDefaults["CPUS"] = self.opts.cpus
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
         self.commandLineDefaults["MEMPERCORE"] = 4096
@@ -346,7 +355,11 @@ class Allocator:
         """Size of standard glideins for allocateNodes auto
         @return the value of autoCPUs
         """
-        return self.getParameter("AUTOCPUS")
+        if self.getParameter("EXCLUSIVE"):
+            peakcpus = self.configuration.platform.peakcpus
+            return peakcpus
+        else:
+            return self.getParameter("AUTOCPUS")
 
     def getWallClock(self):
         """Accessor for WALL_CLOCK
@@ -365,6 +378,18 @@ class Allocator:
         @return the value of RESERVATION
         """
         return self.getParameter("RESERVATION")
+
+    def getExclusive(self):
+        """Accessor for EXCLUSIVE
+        @return the value of EXCLUSIVE
+        """
+        return self.getParameter("EXCLUSIVE")
+
+    def getExcluser(self):
+        """Accessor for EXCLUSER
+        @return the value of EXCLUSER
+        """
+        return self.getParameter("EXCLUSER")
 
     def getParameter(self, value):
         """Accessor for generic value
