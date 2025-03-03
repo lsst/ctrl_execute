@@ -75,9 +75,8 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
 
         self.assertTrue(schedulerClass)
         self.assertTrue(args)
-        self.assertTrue(platform)
+        self.assertTrue(self.config)
         self.assertTrue(condor_info_file)
-        self.assertTrue(schedulerName == "slurm")
 
 
 if __name__ == "__main__":
