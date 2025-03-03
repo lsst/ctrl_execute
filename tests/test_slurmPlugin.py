@@ -67,7 +67,6 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
         p0 = os.path.join("tests/testfiles", "config_condorInfo.py")
         condor_info_file = p0
 
-        platform = "test1"
         self.config = CondorConfig()
         path = os.path.join("tests", "testfiles", "config_condor.py")
         self.config.load(path)
