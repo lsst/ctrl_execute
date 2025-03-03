@@ -1,7 +1,9 @@
 #
+# This file is part of daf_execute.
+#
+# Developed for the LSST Data Management System.
 # LSST Data Management System
 # Copyright 2008-2012 LSST Corporation.
-#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 # # This program is free software: you can redistribute it and/or modify
@@ -76,10 +78,6 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
         self.assertTrue(platform)
         self.assertTrue(condor_info_file)
         self.assertTrue(schedulerName == "slurm")
-
-
-class SlurmPluginMemoryTest(lsst.utils.tests.MemoryTestCase):
-    pass
 
 
 if __name__ == "__main__":
