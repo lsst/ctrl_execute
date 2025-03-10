@@ -291,7 +291,10 @@ class SlurmPlugin(Allocator):
         """Determine and submit the glideins needed from job pressure."""
 
         verbose = self.isVerbose()
+        cpus = self.getCPUs()
         autoCPUs = self.getAutoCPUs()
+        if cpus > autoCPUs:
+            autoCPUs = cpus
         memoryPerCore = self.getMemoryPerCore()
         memoryLimit = autoCPUs * memoryPerCore
         auser = self.getUserName()
