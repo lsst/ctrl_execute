@@ -293,7 +293,8 @@ class SlurmPlugin(Allocator):
         verbose = self.isVerbose()
         cpus = self.getCPUs()
         autoCPUs = self.getAutoCPUs()
-        if cpus > autoCPUs:
+        minAutoCPUs = self.getMinAutoCPUs()
+        if cpus >= minAutoCPUs:
             autoCPUs = cpus
         memoryPerCore = self.getMemoryPerCore()
         memoryLimit = autoCPUs * memoryPerCore
