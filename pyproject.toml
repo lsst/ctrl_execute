@@ -26,15 +26,11 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-    "lsst-ctrl-platform-s3df",
     "pre-commit>=4.0.1",
     "pytest",
     "pytest-xdist",
     "pytest-cov",
 ]
-
-[tool.uv.sources]
-lsst-ctrl-platform-s3df = { git = "https://github.com/lsst/ctrl_platform_s3df.git", rev = "main" }
 
 [project.urls]
 "Homepage" = "https://github.com/lsst/ctrl_execute"

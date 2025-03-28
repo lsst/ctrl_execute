@@ -123,7 +123,6 @@ class Allocator:
         self.commandLineDefaults["MEMPERCORE"] = 4096
         self.commandLineDefaults["ALLOWEDAUTO"] = 500
         self.commandLineDefaults["AUTOCPUS"] = 16
-        self.commandLineDefaults["MINAUTOCPUS"] = 15
         self.commandLineDefaults["QUEUE"] = self.opts.queue
         self.load()
 
@@ -361,12 +360,6 @@ class Allocator:
             return peakcpus
         else:
             return self.getParameter("AUTOCPUS")
-
-    def getMinAutoCPUs(self):
-        """Minimum Size of standard glideins for allocateNodes auto
-        @return the value of minAutoCPUs
-        """
-        return self.getParameter("MINAUTOCPUS")
 
     def getWallClock(self):
         """Accessor for WALL_CLOCK
