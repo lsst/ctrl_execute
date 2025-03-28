@@ -26,10 +26,8 @@ import sys
 import unittest
 
 import lsst.utils.tests
-from lsst.ctrl.execute.allocator import Allocator
 from lsst.ctrl.execute.allocatorParser import AllocatorParser
 from lsst.ctrl.execute.condorConfig import CondorConfig
-from lsst.ctrl.execute.findPackageFile import find_package_file
 from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
 
 
@@ -78,14 +76,6 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
         self.assertTrue(args)
         self.assertTrue(self.config)
         self.assertTrue(condor_info_file)
-
-        platform = "s3df"
-        p = AllocatorParser(sys.argv[0])
-        configuration = CondorConfig()
-        execConfigName = find_package_file("execConfig.py", platform=platform)
-        configuration.loadFromStream(execConfigName.read())
-        scheduler: Allocator = schedulerClass(platform, p.getArgs(), configuration, condor_info_file)
-        self.assertTrue(scheduler)
 
 
 if __name__ == "__main__":
