@@ -26,7 +26,6 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-    "lsst-ctrl-platform-s3df",
     "pre-commit>=4.0.1",
     "pytest",
     "pytest-xdist",
