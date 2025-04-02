@@ -30,9 +30,7 @@ from datetime import datetime
 from string import Template
 
 from lsst.ctrl.execute.allocationConfig import AllocationConfig
-from lsst.ctrl.execute.condorConfig import CondorConfig
 from lsst.ctrl.execute.condorInfoConfig import CondorInfoConfig
-from lsst.ctrl.execute.findPackageFile import find_package_file
 from lsst.ctrl.execute.templateWriter import TemplateWriter
 from lsst.resources import ResourcePath, ResourcePathExpression
 
