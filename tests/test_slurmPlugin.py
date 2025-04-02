@@ -26,6 +26,7 @@ import sys
 import unittest
 
 import lsst.utils.tests
+from lsst.ctrl.execute.allocator import Allocator
 from lsst.ctrl.execute.allocatorParser import AllocatorParser
 from lsst.ctrl.execute.condorConfig import CondorConfig
 from lsst.ctrl.execute.namedClassFactory import NamedClassFactory
@@ -76,6 +77,14 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
         self.assertTrue(args)
         self.assertTrue(self.config)
         self.assertTrue(condor_info_file)
+
+        platform = "test1"
+        configuration = CondorConfig()
+        p1 = os.path.join("tests/testfiles", "config_execconfig.py")
+        execConfigName = p1
+        configuration.load(execConfigName)
+        scheduler: Allocator = schedulerClass(platform, args, configuration, condor_info_file)
+        self.assertTrue(scheduler)
 
 
 if __name__ == "__main__":
