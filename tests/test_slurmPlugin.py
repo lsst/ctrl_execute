@@ -86,6 +86,17 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
         scheduler: Allocator = schedulerClass(platform, args, configuration, condor_info_file)
         self.assertTrue(scheduler)
 
+        autocpus = scheduler.getAutoCPUs()
+        minautocpus = scheduler.getMinAutoCPUs()
+        cpus = scheduler.getCPUs()
+        nodes = scheduler.getNodes()
+        wallclock = scheduler.getWallClock()
+        self.assertEqual(autocpus, 16)
+        self.assertEqual(minautocpus, 15)
+        self.assertEqual(cpus, 12)
+        self.assertEqual(nodes, 64)
+        self.assertEqual(wallclock, "00:30:00")
+
 
 if __name__ == "__main__":
     lsst.utils.tests.init()
