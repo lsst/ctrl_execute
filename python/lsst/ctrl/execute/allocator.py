@@ -79,10 +79,6 @@ class Allocator:
 
         self.platform = platform
 
-        execConfigName = find_package_file("execConfig.py", platform=platform)
-        execConfig = CondorConfig()
-        execConfig.loadFromStream(execConfigName.read())
-
         # Look up the user's name and home and scratch directory in the
         # $HOME/.lsst/condor-info.py file
         user_name = None
@@ -115,7 +111,7 @@ class Allocator:
         self.commandLineDefaults["COLLECTOR"] = self.opts.collector
         self.commandLineDefaults["CPORT"] = self.opts.collectorport
         if self.opts.exclusive:
-            self.commandLineDefaults["CPUS"] = execConfig.platform.peakcpus
+            self.commandLineDefaults["CPUS"] = self.configuration.platform.peakcpus
         else:
             self.commandLineDefaults["CPUS"] = self.opts.cpus
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
