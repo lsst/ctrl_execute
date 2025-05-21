@@ -43,7 +43,7 @@ class TestAllocatorParser(lsst.utils.tests.TestCase):
             "-m",
             "00:30:00",
             "--exclude",
-            "sdfmilan003,
+            "sdfmilan003",
             "--nodelist",
             "sdfmilan004",
             "-q",
