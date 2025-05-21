@@ -179,6 +179,24 @@ class AllocatorParser:
             help="encourage nodes to pack jobs rather than spread",
         )
         parser.add_argument(
+            "--exclude",
+            action="store",
+            default=None,
+            dest="exclude",
+            help="machine name(s) to exclude Slurm jobs from",
+            type=str,
+            required=False,
+        )
+        parser.add_argument(
+            "--nodelist",
+            action="store",
+            default=None,
+            dest="nodelist",
+            help="machine name(s) to target Slurm jobs toward",
+            type=str,
+            required=False,
+        )
+        parser.add_argument(
             "--exclusive",
             action="store_true",
             dest="exclusive",

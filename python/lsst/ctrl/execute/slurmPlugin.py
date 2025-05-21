@@ -214,6 +214,16 @@ class SlurmPlugin(Allocator):
         else:
             self.defaults["RESERVATION"] = ""
 
+        if self.opts.exclude is not None:
+            self.defaults["EXCLUDE"] = f"#SBATCH --exclude {self.opts.exclude}"
+        else:
+            self.defaults["EXCLUDE"] = ""
+
+        if self.opts.nodelist is not None:
+            self.defaults["NODELIST"] = f"#SBATCH --nodelist {self.opts.nodelist}"
+        else:
+            self.defaults["NODELIST"] = ""
+
         if self.opts.exclusive is not None:
             self.defaults["EXCLUSIVE"] = "#SBATCH --exclusive"
         else:
