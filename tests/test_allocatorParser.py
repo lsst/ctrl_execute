@@ -42,6 +42,10 @@ class TestAllocatorParser(lsst.utils.tests.TestCase):
             "12",
             "-m",
             "00:30:00",
+            "--exclude",
+            "sdfmilan003,
+            "--nodelist",
+            "sdfmilan004",
             "-q",
             "normal",
             "-O",
@@ -57,6 +61,8 @@ class TestAllocatorParser(lsst.utils.tests.TestCase):
         self.assertEqual(args.nodeCount, 64)
         self.assertEqual(args.cpus, 12)
         self.assertEqual(args.maximumWallClock, "00:30:00")
+        self.assertEqual(args.exclude, "sdfmilan003")
+        self.assertEqual(args.nodelist, "sdfmilan004")
         self.assertEqual(args.queue, "normal")
         self.assertEqual(args.outputLog, "outlog")
         self.assertEqual(args.errorLog, "errlog")
