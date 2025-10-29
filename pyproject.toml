@@ -1,6 +1,6 @@
 [project]
 name = "lsst-ctrl-execute"
-requires-python = ">=3.11.0,<3.13.0"
+requires-python = ">=3.11.0"
 description = "Utilities for executing and managing workloads."
 license = "BSD-3-Clause OR GPL-3.0-or-later"
 license-files = ["COPYRIGHT", "LICENSE", "bsd_license.txt", "gpl-v3.0.txt"]
