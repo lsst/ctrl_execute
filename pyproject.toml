@@ -1,22 +1,25 @@
 [project]
 name = "lsst-ctrl-execute"
-requires-python = ">=3.11.0,<3.13.0"
+requires-python = ">=3.11.0"
 description = "Utilities for executing and managing workloads."
-license = {text = "BSD 3-Clause License"}
+license = "BSD-3-Clause OR GPL-3.0-or-later"
+license-files = ["COPYRIGHT", "LICENSE", "bsd_license.txt", "gpl-v3.0.txt"]
 authors = [
     {name="Rubin Observatory Data Management", email="dm-admin@lists.lsst.org"},
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Astronomy",
 ]
 keywords = ["lsst"]
 dependencies = [
+    "htcondor ==24.0.*",
     "lsst-ctrl-bps-htcondor>=28.2024.5000; sys_platform == 'linux'",
     "lsst-pex-config",
     "lsst-resources",
