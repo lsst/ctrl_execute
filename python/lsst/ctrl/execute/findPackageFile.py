@@ -28,7 +28,6 @@
 import os
 import sys
 
-import lsst.utils
 from lsst.resources import ResourcePath
 
 
@@ -77,21 +76,17 @@ def find_package_file(filename: str, kind: str = "config", platform: str | None 
 
     home_dir = os.getenv("HOME", "~")
     xdg_config_home = os.getenv("XDG_CONFIG_HOME", "~/.config")
-    try:
-        platform_pkg_dir = lsst.utils.getPackageDir(f"ctrl_platform_{platform}")
-    except (LookupError, ValueError):
-        platform_pkg_dir = None
 
     file_candidates = [
         ResourcePath(home_dir).join(".lsst").join(_filename),
         ResourcePath(xdg_config_home).join("lsst").join(_filename),
-        (ResourcePath(platform_pkg_dir).join("etc").join(kind).join(_filename) if platform_pkg_dir else None),
         ResourcePath(sys.exec_prefix).join("etc").join(kind).join(_filename),
         (
             ResourcePath(f"resource://lsst.ctrl.platform.{platform}/etc/{kind}/{_filename}")
             if platform
             else None
         ),
+        (ResourcePath(f"eups://ctrl_platform_{platform}/{kind}/{_filename}") if platform else None),
         ResourcePath(f"resource://lsst.ctrl.execute/etc/{kind}/{_filename}"),
     ]
     try:
