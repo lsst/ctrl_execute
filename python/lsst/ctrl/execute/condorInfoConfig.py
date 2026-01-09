@@ -62,7 +62,7 @@ class CondorInfoConfig(pexConfig.Config):
 if __name__ == "__main__":
     config = CondorInfoConfig()
     filename = find_package_file("condor-info.py")
-    config.loadFromStream(filename.read())
+    config.load(filename)
 
     for i in config.platform:
         print(i)

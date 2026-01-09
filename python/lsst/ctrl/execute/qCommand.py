@@ -46,12 +46,12 @@ class QCommand:
         configFileName = find_package_file("condor-info.py")
 
         condorInfoConfig = CondorInfoConfig()
-        condorInfoConfig.loadFromStream(configFileName.read())
+        condorInfoConfig.load(configFileName)
 
         configName = find_package_file("pbsConfig.py", platform=platform)
 
         allocationConfig = AllocationConfig()
-        allocationConfig.loadFromStream(configName.read())
+        allocationConfig.load(configName)
 
         self.userName = condorInfoConfig.platform[platform].user.name
 

@@ -76,7 +76,7 @@ class Allocator:
         self.configuration = configuration
 
         condorInfoConfig = CondorInfoConfig()
-        condorInfoConfig.loadFromStream(ResourcePath(condorInfoFileName).read())
+        condorInfoConfig.load(condorInfoFileName)
 
         self.platform = platform
 
@@ -164,7 +164,7 @@ class Allocator:
         if not (name_ := ResourcePath(name)).exists():
             raise RuntimeError(f"{name_} was not found.")
         allocationConfig = AllocationConfig()
-        allocationConfig.loadFromStream(name_.read())
+        allocationConfig.load(name_)
 
         self.defaults["QUEUE"] = allocationConfig.platform.queue
         self.defaults["EMAIL_NOTIFICATION"] = allocationConfig.platform.email
