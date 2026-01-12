@@ -267,6 +267,17 @@ class SlurmPlugin(Allocator):
         else:
             self.defaults["PACK_BLOCK"] = "Rank = TotalCpus - Cpus"
 
+        if self.opts.appendcondor is None:
+            self.defaults["CONDOR_CONFIG_BLOCK"] = "#"
+        else:
+            condorConfigName = ResourcePath(self.opts.appendcondor)
+            with condorConfigName.open() as f:
+                lines = f.readlines()
+                block = ""
+                for line in lines:
+                    block += line
+                self.defaults["CONDOR_CONFIG_BLOCK"] = block
+
         # handle dynamic slot block template:
         # 1) if it isn't specified, just put a comment in its place
         # 2) if it's specified, but without a filename, use the default

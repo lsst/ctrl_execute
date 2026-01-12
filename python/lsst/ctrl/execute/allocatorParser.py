@@ -226,6 +226,14 @@ class AllocatorParser:
             help="target a particular Slurm reservation",
         )
         parser.add_argument(
+            "--append-condor",
+            action="store",
+            dest="appendcondor",
+            type=str,
+            default=None,
+            help="extra condor configuration to append to the glidein configuration",
+        )
+        parser.add_argument(
             "-d",
             "--dynamic",
             const="__default__",
