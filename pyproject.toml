@@ -21,8 +21,8 @@ keywords = ["lsst"]
 dependencies = [
     "htcondor ==24.0.*",
     "lsst-ctrl-bps-htcondor>=28.2024.5000; sys_platform == 'linux'",
-    "lsst-pex-config",
-    "lsst-resources",
+    "lsst-pex-config >= 30.2026.300",
+    "lsst-resources >= 30.2026.300",
     "lsst-utils",
 ]
 dynamic = ["version"]
