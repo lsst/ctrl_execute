@@ -71,7 +71,7 @@ def main():
     # load the CondorConfig file
     execConfigName = find_package_file("execConfig.py", platform=platform)
     configuration = CondorConfig()
-    configuration.loadFromStream(execConfigName.read())
+    configuration.load(execConfigName)
 
     # create the plugin class
     schedulerName = configuration.platform.scheduler
