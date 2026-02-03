@@ -97,6 +97,15 @@ class AllocatorParser:
             type=str,
         )
         parser.add_argument(
+            "--nodeset",
+            action="store",
+            default=None,
+            dest="nodeset",
+            help="nodeset label to attach to glideins",
+            type=str,
+            required=False,
+        )
+        parser.add_argument(
             "--collector",
             action="store",
             default=None,

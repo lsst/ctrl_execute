@@ -164,7 +164,11 @@ class SlurmPlugin(Allocator):
         )
 
         auser = self.getUserName()
-        jobname = f"glide_{auser}"
+        anodeset = self.getNodeset()
+        if anodeset is None:
+            jobname = f"glide_{auser}"
+        else:
+            jobname = f"{anodeset}glide_{auser}"
         _LOG.debug("The unix user name is %s", auser)
         _LOG.debug("The Slurm job name for the glidein jobs is %s", jobname)
         _LOG.debug("The user home directory is %s", self.getUserHome())
@@ -258,6 +262,13 @@ class SlurmPlugin(Allocator):
         else:
             self.defaults["OPEN_FILES"] = self.opts.openfiles
 
+        if self.opts.nodeset is None:
+            self.defaults["NODESET_BLOCK"] = "#"
+            self.defaults["NODESET"] = ""
+        else:
+            self.defaults["NODESET_BLOCK"] = f"Nodeset = \"{self.opts.nodeset}\""
+            self.defaults["NODESET"] = f"{self.opts.nodeset}"
+
         # For partitionable slots the classad 'Cpus' shows how many cpus
         # remain to be allocated. Thus for a slot running jobs the value
         # of Rank of TotalCpus - Cpus will increase with the load.
@@ -314,6 +325,7 @@ class SlurmPlugin(Allocator):
         memoryPerCore = self.getMemoryPerCore()
         memoryLimit = autoCPUs * memoryPerCore
         auser = self.getUserName()
+        anodeset = self.getNodeset()
 
         # projection contains the job classads to be returned.
         # These include the cpu and memory profile of each job,
@@ -334,10 +346,15 @@ class SlurmPlugin(Allocator):
         # JobUniverse constants are in htcondor C++
         # UNIVERSE = { 1: "Standard", ..., 5: "Vanilla", ... }
         juniv = "(JobUniverse==5)"
+        jnodeset = f'(JobNodeset=="{anodeset}")'
 
         # The constraint determines that the jobs to be returned belong to
         # the current user (Owner) and are Idle vanilla universe jobs.
         full_constraint = f"{owner} && {jstat} && {juniv}"
+        if anodeset is None:
+            full_constraint += " && (JobNodeset is None)"
+        else:
+            full_constraint += f" && {jnodeset}"
         _LOG.info("Auto: Query for htcondor jobs.")
         _LOG.debug("full_constraint %s", full_constraint)
         try:
@@ -391,7 +408,10 @@ class SlurmPlugin(Allocator):
                     useCores = autoCPUs
                 hash = hashlib.sha1(job_label.encode("UTF-8")).hexdigest()
                 shash = hash[:6]
-                jobname = f"{auser}_{shash}"
+                if anodeset is None:
+                    jobname = f"{auser}_{shash}"
+                else:
+                    jobname = f"{anodeset}{auser}_{shash}"
                 _LOG.debug("jobname %s", jobname)
                 # Check if Job exists Idle in the queue
                 numberJobname = SlurmPlugin.countIdleSlurmJobs(jobname)
@@ -461,7 +481,10 @@ class SlurmPlugin(Allocator):
             numberOfGlideins = math.ceil(totalCores / autoCPUs)
             _LOG.info("small: Number for detected jobs is %d", numberOfGlideins)
 
-            jobname = f"glide_{auser}"
+            if anodeset is None:
+                jobname = f"glide_{auser}"
+            else:
+                jobname = f"{anodeset}glide_{auser}"
 
             # Check Slurm queue Running glideins
             existingGlideinsRunning = SlurmPlugin.countRunningSlurmJobs(jobname)
