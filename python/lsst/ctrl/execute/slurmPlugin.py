@@ -266,7 +266,7 @@ class SlurmPlugin(Allocator):
             self.defaults["NODESET_BLOCK"] = "#"
             self.defaults["NODESET"] = ""
         else:
-            self.defaults["NODESET_BLOCK"] = f"Nodeset = \"{self.opts.nodeset}\""
+            self.defaults["NODESET_BLOCK"] = f'Nodeset = "{self.opts.nodeset}"'
             self.defaults["NODESET"] = f"{self.opts.nodeset}"
 
         # For partitionable slots the classad 'Cpus' shows how many cpus
