@@ -50,6 +50,8 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
             "00:30:00",
             "-q",
             "normal",
+            "--nodeset",
+            "DRP",
             "-O",
             "outlog",
             "-E",
@@ -90,11 +92,13 @@ class SlurmPluginTest(lsst.utils.tests.TestCase):
         minautocpus = scheduler.getMinAutoCPUs()
         cpus = scheduler.getCPUs()
         nodes = scheduler.getNodes()
+        nodeset = scheduler.getNodeset()
         wallclock = scheduler.getWallClock()
         self.assertEqual(autocpus, 16)
         self.assertEqual(minautocpus, 15)
         self.assertEqual(cpus, 12)
         self.assertEqual(nodes, 64)
+        self.assertEqual(nodeset, "DRP")
         self.assertEqual(wallclock, "00:30:00")
 
 
