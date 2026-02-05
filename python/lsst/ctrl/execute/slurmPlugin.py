@@ -346,7 +346,6 @@ class SlurmPlugin(Allocator):
         # JobUniverse constants are in htcondor C++
         # UNIVERSE = { 1: "Standard", ..., 5: "Vanilla", ... }
         juniv = "(JobUniverse==5)"
-        jnodeset = f'(JobNodeset=="{anodeset}")'
 
         # The constraint determines that the jobs to be returned belong to
         # the current user (Owner) and are Idle vanilla universe jobs.
@@ -354,6 +353,7 @@ class SlurmPlugin(Allocator):
         if anodeset is None:
             full_constraint += " && (JobNodeset is None)"
         else:
+            jnodeset = f'(JobNodeset=="{anodeset}")'
             full_constraint += f" && {jnodeset}"
         _LOG.info("Auto: Query for htcondor jobs.")
         _LOG.debug("full_constraint %s", full_constraint)
