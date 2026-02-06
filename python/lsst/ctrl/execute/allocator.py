@@ -122,6 +122,7 @@ class Allocator:
         self.commandLineDefaults["AUTOCPUS"] = 16
         self.commandLineDefaults["MINAUTOCPUS"] = 15
         self.commandLineDefaults["QUEUE"] = self.opts.queue
+        self.commandLineDefaults["NODESET"] = self.opts.nodeset
         self.load()
 
     def createUniqueIdentifier(self):
@@ -394,6 +395,12 @@ class Allocator:
         @return the value of EXCLUSER
         """
         return self.getParameter("EXCLUSER")
+
+    def getNodeset(self):
+        """Accessor for NODESET
+        @return the value of NODESET
+        """
+        return self.getParameter("NODESET")
 
     def getParameter(self, value):
         """Accessor for generic value
