@@ -46,6 +46,8 @@ class TestAllocatorParser(lsst.utils.tests.TestCase):
             "sdfmilan003",
             "--nodelist",
             "sdfmilan004",
+            "--append-condor",
+            "testcondorconfig",
             "-q",
             "normal",
             "-O",
@@ -63,6 +65,7 @@ class TestAllocatorParser(lsst.utils.tests.TestCase):
         self.assertEqual(args.maximumWallClock, "00:30:00")
         self.assertEqual(args.exclude, "sdfmilan003")
         self.assertEqual(args.nodelist, "sdfmilan004")
+        self.assertEqual(args.appendcondor, "testcondorconfig")
         self.assertEqual(args.queue, "normal")
         self.assertEqual(args.outputLog, "outlog")
         self.assertEqual(args.errorLog, "errlog")
