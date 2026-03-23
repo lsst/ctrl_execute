@@ -373,7 +373,7 @@ class Allocator:
         """
         peakmemory = self.getParameter("PEAKMEMORY")
         if self.opts.queue == "torino":
-            peakmemory = int(3*peakmemory/2)
+            peakmemory = int(3 * peakmemory / 2)
         return peakmemory
 
     def getAutoCPUs(self):

@@ -95,6 +95,8 @@ class TestCondorConfig(lsst.utils.tests.TestCase):
         self.assertEqual(self.config.platform.scheduler, "slurm")
         self.assertEqual(self.config.platform.setup_using, "getenv")
         self.assertEqual(self.config.platform.manager, "dagman")
+        self.assertEqual(self.config.platform.peakcpus, 120)
+        self.assertEqual(self.config.platform.peakmemory, 491520)
 
     def test6(self):
         path = os.path.join("tests", "testfiles", "config_pegasus.py")

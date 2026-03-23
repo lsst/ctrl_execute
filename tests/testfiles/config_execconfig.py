@@ -4,3 +4,4 @@ config.platform.localScratch = "/condor_scratch"
 config.platform.fileSystemDomain = "slac.stanford.edu"
 config.platform.scheduler = "slurm"
 config.platform.peakcpus = 120
+config.platform.peakmemory = 737280
