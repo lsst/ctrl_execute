@@ -43,6 +43,11 @@ class AllocatedPlatformConfig(pexConfig.Config):
         dtype=str,
         default=None,
     )
+    collector = pexConfig.Field(
+        doc="host where HTCondor collector service is running",
+        dtype=str,
+        default=None,
+    )
     loginHostName = pexConfig.Field(doc="the host to login and copy files to", dtype=str, default=None)
     utilityPath = pexConfig.Field(
         doc="the directory containing the scheduler commands", dtype=str, default=None

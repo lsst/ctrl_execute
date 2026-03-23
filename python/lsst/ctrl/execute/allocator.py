@@ -109,15 +109,26 @@ class Allocator:
         self.defaults["USER_SCRATCH"] = user_scratch
         self.commandLineDefaults = {}
         self.commandLineDefaults["NODE_COUNT"] = self.opts.nodeCount
-        self.commandLineDefaults["COLLECTOR"] = self.opts.collector
+        if self.configuration.platform.collector:
+            self.commandLineDefaults["COLLECTOR"] = self.configuration.platform.collector
+        if self.opts.collector:
+            self.commandLineDefaults["COLLECTOR"] = self.opts.collector
         self.commandLineDefaults["CPORT"] = self.opts.collectorport
+        self.commandLineDefaults["PEAKCPUS"] = self.configuration.platform.peakcpus
+        self.commandLineDefaults["PEAKMEMORY"] = self.configuration.platform.peakmemory
         if self.opts.exclusive:
             self.commandLineDefaults["CPUS"] = self.configuration.platform.peakcpus
         else:
-            self.commandLineDefaults["CPUS"] = self.opts.cpus
+            if self.opts.cpus < self.configuration.platform.peakcpus:
+                self.commandLineDefaults["CPUS"] = self.opts.cpus
+            else:
+                self.commandLineDefaults["CPUS"] = self.configuration.platform.peakcpus
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
-        self.commandLineDefaults["MEMPERCORE"] = 4096
+        if self.opts.mempercore:
+            self.commandLineDefaults["MEMPERCORE"] = self.opts.mempercore
+        else:
+            self.commandLineDefaults["MEMPERCORE"] = 4096
         self.commandLineDefaults["ALLOWEDAUTO"] = 500
         self.commandLineDefaults["AUTOCPUS"] = 16
         self.commandLineDefaults["MINAUTOCPUS"] = 15
@@ -223,7 +234,7 @@ class Allocator:
         if not os.path.exists(self.configDir):
             os.makedirs(self.configDir)
         outfile = self.createFile(inputFile, self.submitFileName)
-        _LOG.debug("Wrote new Slurm submit file to %s", outfile)
+        _LOG.debug("Wrote new submit file to %s", outfile)
         return outfile
 
     def createCondorConfigFile(self, input):
@@ -350,6 +361,21 @@ class Allocator:
         """
         return self.getParameter("CPUS")
 
+    def getPeakcpus(self):
+        """Accessor for PEAKCPUS
+        @return the value of PEAKCPUS
+        """
+        return self.getParameter("PEAKCPUS")
+
+    def getPeakmemory(self):
+        """Accessor for PEAKMEMORY
+        @return the value of PEAKMEMORY
+        """
+        peakmemory = self.getParameter("PEAKMEMORY")
+        if self.opts.queue == "torino":
+            peakmemory = int(3*peakmemory/2)
+        return peakmemory
+
     def getAutoCPUs(self):
         """Size of standard glideins for allocateNodes auto
         @return the value of autoCPUs
@@ -365,6 +391,12 @@ class Allocator:
         @return the value of minAutoCPUs
         """
         return self.getParameter("MINAUTOCPUS")
+
+    def getCollector(self):
+        """Accessor for COLLECTOR
+        @return the value of COLLECTOR
+        """
+        return self.getParameter("COLLECTOR")
 
     def getWallClock(self):
         """Accessor for WALL_CLOCK

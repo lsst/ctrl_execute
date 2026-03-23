@@ -44,6 +44,8 @@ class PlatformConfig(pexConfig.Config):
     nodeSetRequired = pexConfig.Field(doc="is the nodeset required", dtype=bool, default=False)
     scheduler = pexConfig.Field(doc="scheduler type", dtype=str, default=None)
     peakcpus = pexConfig.Field(doc="peakcpus", dtype=int, default=None)
+    peakmemory = pexConfig.Field(doc="peakmemory", dtype=int, default=None)
+    collector = pexConfig.Field(doc="collector", dtype=str, default=None)
     manager = pexConfig.Field(doc="workflow manager", dtype=str, default=None)
     setup_using = pexConfig.Field(doc="environment setup type", dtype=str, default=None)
     manager_software_home = pexConfig.Field(
