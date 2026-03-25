@@ -128,7 +128,7 @@ class AllocatorParser:
             action="store",
             default=4096,
             dest="mempercore",
-            help="Memory per core to be scheduled by default",
+            help="Memory per core in MB to be scheduled by default",
             type=int,
             required=False,
         )

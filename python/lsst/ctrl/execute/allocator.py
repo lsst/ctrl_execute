@@ -114,8 +114,14 @@ class Allocator:
         if self.opts.collector:
             self.commandLineDefaults["COLLECTOR"] = self.opts.collector
         self.commandLineDefaults["CPORT"] = self.opts.collectorport
-        self.commandLineDefaults["PEAKCPUS"] = self.configuration.platform.peakcpus
-        self.commandLineDefaults["PEAKMEMORY"] = self.configuration.platform.peakmemory
+        if self.configuration.platform.peakcpus:
+            self.commandLineDefaults["PEAKCPUS"] = self.configuration.platform.peakcpus
+        else:
+            self.commandLineDefaults["PEAKCPUS"] = 256
+        if self.configuration.platform.peakmemory:
+            self.commandLineDefaults["PEAKMEMORY"] = self.configuration.platform.peakmemory
+        else:
+            self.commandLineDefaults["PEAKMEMORY"] = 1000000
         if self.opts.exclusive:
             self.commandLineDefaults["CPUS"] = self.configuration.platform.peakcpus
         else:
@@ -125,10 +131,7 @@ class Allocator:
                 self.commandLineDefaults["CPUS"] = self.configuration.platform.peakcpus
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
-        if self.opts.mempercore:
-            self.commandLineDefaults["MEMPERCORE"] = self.opts.mempercore
-        else:
-            self.commandLineDefaults["MEMPERCORE"] = 4096
+        self.commandLineDefaults["MEMPERCORE"] = self.opts.mempercore
         self.commandLineDefaults["ALLOWEDAUTO"] = 500
         self.commandLineDefaults["AUTOCPUS"] = 16
         self.commandLineDefaults["MINAUTOCPUS"] = 15
