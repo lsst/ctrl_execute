@@ -124,6 +124,15 @@ class AllocatorParser:
             required=False,
         )
         parser.add_argument(
+            "--mempercore",
+            action="store",
+            default=4096,
+            dest="mempercore",
+            help="Memory per core in MB to be scheduled by default",
+            type=int,
+            required=False,
+        )
+        parser.add_argument(
             "-s",
             "--qos",
             action="store",
@@ -147,7 +156,7 @@ class AllocatorParser:
             "--queue",
             action="store",
             dest="queue",
-            default="roma,milano",
+            default="milano",
             help="queue / partition  name",
         )
         parser.add_argument(

@@ -150,6 +150,10 @@ class SlurmPlugin(Allocator):
         cpus = self.getCPUs()
         memoryPerCore = self.getMemoryPerCore()
         totalMemory = cpus * memoryPerCore
+        peakMemory = self.getPeakmemory()
+        if totalMemory > peakMemory:
+            totalMemory = peakMemory
+            _LOG.debug("Direct: Setting job memory to peak memory on platform.")
 
         # run the sbatch command
         template = Template(self.getLocalScratchDirectory())
@@ -324,6 +328,11 @@ class SlurmPlugin(Allocator):
             autoCPUs = cpus
         memoryPerCore = self.getMemoryPerCore()
         memoryLimit = autoCPUs * memoryPerCore
+        peakMemory = self.getPeakmemory()
+        if memoryLimit > peakMemory:
+            memoryLimit = peakMemory
+            _LOG.debug("Auto: Setting job memory to peak memory on platform.")
+
         auser = self.getUserName()
         anodeset = self.getNodeset()
 
@@ -400,6 +409,10 @@ class SlurmPlugin(Allocator):
                 _LOG.debug("\n%d.%d", ajob["ClusterId"], ajob["ProcId"])
                 _LOG.debug("%s", ajob)
                 thisMemory = ajob["RequestMemoryEval"]
+                peakMemory = self.getPeakmemory()
+                if thisMemory > peakMemory:
+                    thisMemory = peakMemory
+                    _LOG.debug("Auto large: Setting job memory to peak memory on platform.")
                 useCores = ajob["RequestCpus"]
                 clusterid = ajob["ClusterId"]
                 procid = ajob["ProcId"]

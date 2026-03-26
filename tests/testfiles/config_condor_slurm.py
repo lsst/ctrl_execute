@@ -1,4 +1,6 @@
 # flake8: noqa
+config.platform.peakcpus = 120
+config.platform.peakmemory = 491520
 config.platform.defaultRoot = "/usr"
 config.platform.localScratch = "./tests/condor_scratch_slurm"
 config.platform.dataDirectory = "/tmp/data_slurm"
