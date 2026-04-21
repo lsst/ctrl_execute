@@ -109,6 +109,9 @@ class Allocator:
         self.defaults["USER_SCRATCH"] = user_scratch
         self.commandLineDefaults = {}
         self.commandLineDefaults["NODE_COUNT"] = self.opts.nodeCount
+        self.commandLineDefaults["POOLKEY"] = "s3df_token_key"
+        if self.opts.poolkey:
+            self.commandLineDefaults["POOLKEY"] = self.opts.poolkey
         if self.configuration.platform.collector:
             self.commandLineDefaults["COLLECTOR"] = self.configuration.platform.collector
         if self.opts.collector:

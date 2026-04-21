@@ -106,6 +106,15 @@ class AllocatorParser:
             required=False,
         )
         parser.add_argument(
+            "--poolkey",
+            action="store",
+            default=None,
+            dest="poolkey",
+            help="pool key for the htcondor collector",
+            type=str,
+            required=False,
+        )
+        parser.add_argument(
             "--collector",
             action="store",
             default=None,
