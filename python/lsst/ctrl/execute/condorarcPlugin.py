@@ -178,7 +178,6 @@ class CondorarcPlugin(Allocator):
         _LOG.debug("The JobNodeset for the glidein jobs is %s", jobname)
         _LOG.debug("The local user home directory is %s", self.getUserHome())
 
-
         if auto:
             self.glideinsFromJobPressure()
         else:
@@ -433,7 +432,7 @@ class CondorarcPlugin(Allocator):
                 procid = ajob["ProcId"]
                 job_label = f"{clusterid}_{procid}_{thisMemory}"
 
-                memCores = thisMemory//8192 + 1
+                memCores = thisMemory // 8192 + 1
                 useCores = max(thisCores, memCores)
                 if useCores < autoCPUs:
                     useCores = autoCPUs
@@ -467,12 +466,14 @@ class CondorarcPlugin(Allocator):
                 apcpu = f"-append arguments={useCores}"
                 # apenv = f"-append environment=\"ENODESET={anodeset}\""
 
-                arc1 = (f"ArcResources=<SlotRequirement><NumberOfSlots>{useCores}</NumberOfSlots>"
-                        f"<SlotsPerHost>{useCores}</SlotsPerHost></SlotRequirement>"
-                        "<QueueName>lsst</QueueName>"
-                        "<IndividualPhysicalMemory>8892000000</IndividualPhysicalMemory>"
-                        "<RuntimeEnvironment><Name>ENV/PROXY</Name></RuntimeEnvironment>"
-                        f"<WallTime>{wallClock}</WallTime>")
+                arc1 = (
+                    f"ArcResources=<SlotRequirement><NumberOfSlots>{useCores}</NumberOfSlots>"
+                    f"<SlotsPerHost>{useCores}</SlotsPerHost></SlotRequirement>"
+                    "<QueueName>lsst</QueueName>"
+                    "<IndividualPhysicalMemory>8892000000</IndividualPhysicalMemory>"
+                    "<RuntimeEnvironment><Name>ENV/PROXY</Name></RuntimeEnvironment>"
+                    f"<WallTime>{wallClock}</WallTime>"
+                )
 
                 aparc = f"-append {arc1}"
                 apq = "-append queue"
@@ -536,8 +537,7 @@ class CondorarcPlugin(Allocator):
             # The number of Glideins needed to service the detected Idle jobs
             # is "numberOfGlideins"
             numberOfGlideins = math.ceil(totalCores / autoCPUs)
-            _LOG.info("small: Number for detected jobs is %d", numberOfGlideins)
-
+            _LOG.info("small: Number of detected jobs is %d", numberOfGlideins)
 
             if anodeset is None:
                 jobname = f"glide_{auser}"
@@ -555,12 +555,10 @@ class CondorarcPlugin(Allocator):
             _LOG.debug("small: existingGlideinsRunning %d", existingGlideinsRunning)
             _LOG.debug("small: existingGlideinsIdle %d", existingGlideinsIdle)
 
-
             # The number of Glideins needed to service the detected
             # Idle jobs is "numberOfGlideins" less the existing Idle glideins
             numberOfGlideinsReduced = numberOfGlideins - existingGlideinsIdle
             _LOG.debug("small: Target Number to submit %d", numberOfGlideinsReduced)
-
 
             # The maximum number of Glideins that we can submit with
             # the imposed threshold (maxNumberOfGlideins)
@@ -569,7 +567,6 @@ class CondorarcPlugin(Allocator):
             maxSubmitGlideins = maxNumberOfGlideins - existingGlideins
             _LOG.debug("small: maxNumberOfGlideins %d", maxNumberOfGlideins)
             _LOG.debug("small: maxSubmitGlideins %d", maxSubmitGlideins)
-
 
             # Reduce the number of Glideins to submit if threshold exceeded
             if numberOfGlideinsReduced > maxSubmitGlideins:
