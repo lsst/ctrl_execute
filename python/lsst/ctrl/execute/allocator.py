@@ -132,6 +132,9 @@ class Allocator:
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
         self.commandLineDefaults["MEMPERCORE"] = self.opts.mempercore
+        #  1086000  = 1.086*1000000
+        self.commandLineDefaults["ARCMEM"] = \
+            1086000*self.commandLineDefaults["MEMPERCORE"]
         self.commandLineDefaults["ALLOWEDAUTO"] = 500
         self.commandLineDefaults["AUTOCPUS"] = 16
         self.commandLineDefaults["MINAUTOCPUS"] = 15
