@@ -132,6 +132,9 @@ class Allocator:
         self.commandLineDefaults["WALL_CLOCK"] = self.opts.maximumWallClock
         self.commandLineDefaults["ACCOUNT"] = self.opts.account
         self.commandLineDefaults["MEMPERCORE"] = self.opts.mempercore
+        # ARC CE jobs require a larger memory request than the target payloads
+        # 1086000  = 1.086*1000000
+        self.commandLineDefaults["ARCMEM"] = 1086000 * self.commandLineDefaults["MEMPERCORE"]
         self.commandLineDefaults["ALLOWEDAUTO"] = 500
         self.commandLineDefaults["AUTOCPUS"] = 16
         self.commandLineDefaults["MINAUTOCPUS"] = 15
